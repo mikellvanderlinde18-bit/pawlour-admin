@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/dashboard/bookings/page": "/dashboard/bookings",
+  "/dashboard/groomers/[id]/availability/page": "/dashboard/groomers/[id]/availability",
+  "/dashboard/groomers/[id]/schedule/page": "/dashboard/groomers/[id]/schedule",
+  "/dashboard/groomers/page": "/dashboard/groomers",
+  "/dashboard/hours/page": "/dashboard/hours",
+  "/dashboard/page": "/dashboard",
+  "/dashboard/services/page": "/dashboard/services",
+  "/favicon.ico/route": "/favicon.ico",
+  "/login/page": "/login",
+  "/onboarding/page": "/onboarding",
+  "/signup/page": "/signup"
+}

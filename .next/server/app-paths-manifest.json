@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/dashboard/bookings/page": "app/dashboard/bookings/page.js",
+  "/dashboard/groomers/[id]/availability/page": "app/dashboard/groomers/[id]/availability/page.js",
+  "/dashboard/groomers/[id]/schedule/page": "app/dashboard/groomers/[id]/schedule/page.js",
+  "/dashboard/groomers/page": "app/dashboard/groomers/page.js",
+  "/dashboard/hours/page": "app/dashboard/hours/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/services/page": "app/dashboard/services/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/login/page": "app/login/page.js",
+  "/onboarding/page": "app/onboarding/page.js",
+  "/signup/page": "app/signup/page.js"
+}
