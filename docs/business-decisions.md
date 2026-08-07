@@ -52,6 +52,58 @@ is made — not implementation details, just the decisions and why.
   yet. Revisit WhatsApp integration once real parlours ask for it; likely a
   Pro-tier upsell later.
 
+## Client onboarding & dog profiles
+- **Done**: first-time welcome flow (`/book/[slug]/welcome`) — warm greeting,
+  account creation, then a guided multi-step dog profile setup (basics,
+  look & style, personality tags, health & care, favorites/quirks). All
+  fields collected up front in one guided flow, not left for later.
+- Only the dog's name is actually required. Every step past that has a
+  "Skip the rest — just book me in" option, so a client who just wants to
+  book a quick cut isn't forced through the full profile. Rich profile
+  fields (breed, personality, health, favorites) remain genuinely optional
+  and can, in principle, be filled in later — though there's currently no
+  edit UI for updating a dog's profile after creation; that's a real gap
+  worth closing (a client can create a dog once during welcome, but can't
+  yet go back and add the details they skipped).
+- **Done**: `/book/[slug]/dogs/[id]` — a single shared page handles both
+  creating a new dog (`id = 'new'`) and editing an existing one (any real
+  dog id), using the exact same field set as the welcome flow, plus a
+  delete option in edit mode. Reachable from the Account tab: each dog card
+  is now clickable to edit, and an "+ Add another dog" link creates
+  additional dogs — closes both the "can't complete a skipped profile
+  later" gap and multi-dog support in one page.
+- Logged-in clients with no client record or zero dogs are auto-redirected
+  here from the main booking page — a new client can't reach the booking
+  flow without a dog profile existing first.
+- `dog` table expanded: birthday, gender, coat_color, personality_tags
+  (text array, picked from a fixed fun tag list — "Cuddle bug", "Zoomies
+  champion", etc.), about (free text), favorite_treat, favorite_toy,
+  dislikes, vet_name, vet_phone, vaccinated, vaccination_expiry,
+  medications — on top of the original breed/size/coat_type/cut_style/
+  special_requests/health_notes.
+- Not yet built: photo upload for dog profiles (currently no field is
+  populated for this in the welcome flow — photo_url column exists but is
+  unused until Supabase Storage is wired up).
+- **Done**: dog photo upload. Public Supabase Storage bucket `dog-photos`,
+  RLS scoped so a user can only write inside a folder named after their own
+  auth uid (`dog-photos/{uid}/...`) — prevents clients overwriting each
+  other's files. Photo shows on the welcome flow avatar and the account
+  page's dog cards.
+- **Bug found & fixed**: the `client` table had policies for staff
+  management and for a client viewing/updating their *own* existing record,
+  but no INSERT policy for a brand-new user creating their own client record
+  in the first place — self-signup was silently broken until this was
+  added. Worth double-checking any new self-service table follows the same
+  pattern: staff ALL, client SELECT/UPDATE own, AND client INSERT own.
+
+- **Done**: real "Forgot password?" flow — `/forgot-password` (request a
+  reset email via Supabase's built-in `resetPasswordForEmail`) and
+  `/reset-password` (set a new password after clicking the emailed link,
+  which establishes a temporary recovery session automatically). Linked
+  from both login points (welcome flow and the inline auth step in the main
+  booking page). Closes the previous real gap where a forgotten password
+  could only be fixed by manually updating the database.
+
 ## Rewards
 - Fully configurable per parlour (trigger type: visit count or spend total;
   threshold; reward type). No hardcoded "10th cut free" — that's just the
@@ -83,6 +135,32 @@ is made — not implementation details, just the decisions and why.
   Pawlour doesn't have a designed dark mode, this was removed — all forms
   force explicit text color instead of inheriting. Watch for this if any new
   page is scaffolded and reuses default Next.js styles.
+
+## Admin bookings
+- **Done**: `/dashboard/bookings` is now a real list — filterable
+  (upcoming/past/all), shows client, dog, service, groomer, price, status.
+  Staff can cancel a confirmed booking directly. The old "create a booking"
+  form moved to `/dashboard/bookings/new` (unchanged functionality).
+- **Done**: closes the "no admin UI to assign a groomer" gap flagged
+  earlier for capacity-based bookings — any booking with no groomer
+  assigned shows a dropdown right on the list to assign one after the fact.
+
+## Admin rewards & offers (closes the "SQL-only" gap)
+- **Done**: `/dashboard/rewards` — a real setup screen for the loyalty
+  programme (visit count or spend threshold, reward type, on/off toggle).
+  No longer needs manual SQL to configure per parlour.
+- **Done**: `/dashboard/offers` — create/list/remove offers, with an
+  audience selector (all / lapsed / loyal). Note: audience is currently
+  just stored, not yet used to actually filter which clients see an offer
+  in the client app's Offers tab — every client sees every offer regardless
+  of audience. Real segmented delivery is a v2 item.
+
+## Reporting
+- **Done**: `/dashboard/reports` — basic dashboard scoped to last 30 days:
+  revenue, booking count, cancellation rate, total clients, top 5 services,
+  top 5 groomers by booking count. Matches the "basic v1" scope decided
+  early on — no cross-location or commission breakdowns yet (that's a
+  Group-tier item per the pricing decisions above).
 
 ## Availability model
 - Weekly template (on `groomer.weekly_hours`) covers the common case: regular,

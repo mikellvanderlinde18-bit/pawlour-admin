@@ -77,10 +77,28 @@ export default async function DashboardPage() {
             Opening hours →
           </a>
           <a
+            href="/dashboard/reports"
+            className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
+          >
+            Reports →
+          </a>
+          <a
+            href="/dashboard/rewards"
+            className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
+          >
+            Rewards →
+          </a>
+          <a
+            href="/dashboard/offers"
+            className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
+          >
+            Offers →
+          </a>
+          <a
             href="/dashboard/bookings"
             className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
           >
-            New booking →
+            Bookings →
           </a>
           <a
             href="/dashboard/services"
