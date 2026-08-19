@@ -12,11 +12,7 @@ type Override = {
   reason: string | null;
 };
 
-export default function GroomerSchedulePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function GroomerSchedulePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: groomerId } = use(params);
   const supabase = createClient();
 
@@ -35,12 +31,7 @@ export default function GroomerSchedulePage({
   const loadData = useCallback(async () => {
     setLoading(true);
 
-    const { data: groomer } = await supabase
-      .from("groomer")
-      .select("name")
-      .eq("id", groomerId)
-      .single();
-
+    const { data: groomer } = await supabase.from("groomer").select("name").eq("id", groomerId).single();
     setGroomerName(groomer?.name ?? "Groomer");
 
     const { data: overrideRows, error: overrideError } = await supabase
@@ -113,36 +104,23 @@ export default function GroomerSchedulePage({
         <a href="/dashboard/groomers" className="text-xs text-[#14261F]/50 hover:underline">
           ← Back to groomers
         </a>
-        <h1 className="text-2xl font-semibold text-[#14261F] mt-2 mb-1">
-          {groomerName}&apos;s schedule exceptions
-        </h1>
+        <h1 className="text-2xl font-semibold text-[#14261F] mt-2 mb-1">{groomerName}&apos;s schedule exceptions</h1>
         <p className="text-sm text-[#14261F]/60 mb-8">
-          Add one-off shifts or block out days on top of their weekly hours — sick days, extra
-          Saturdays, or fully casual scheduling with no fixed pattern at all.
+          Add one-off shifts or block out days on top of their weekly hours — sick days, extra Saturdays, or fully
+          casual scheduling with no fixed pattern at all.
         </p>
 
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">
-            {error}
-          </div>
+          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">{error}</div>
         )}
 
         <div className="space-y-2 mb-8">
-          {overrides.length === 0 && (
-            <p className="text-sm text-[#14261F]/50 italic">No exceptions added yet.</p>
-          )}
+          {overrides.length === 0 && <p className="text-sm text-[#14261F]/50 italic">No exceptions added yet.</p>}
           {overrides.map((o) => (
-            <div
-              key={o.id}
-              className="bg-white border border-black/10 rounded-xl px-4 py-3 flex items-center justify-between"
-            >
+            <div key={o.id} className="bg-white border border-black/10 rounded-xl px-4 py-3 flex items-center justify-between">
               <div className="text-sm">
                 <span className="font-medium text-[#14261F]">
-                  {new Date(o.date + "T00:00:00").toLocaleDateString("en-ZA", {
-                    weekday: "short",
-                    day: "numeric",
-                    month: "short",
-                  })}
+                  {new Date(o.date + "T00:00:00").toLocaleDateString("en-ZA", { weekday: "short", day: "numeric", month: "short" })}
                 </span>{" "}
                 {o.is_available ? (
                   <span className="text-[#14261F]/70">
@@ -153,42 +131,28 @@ export default function GroomerSchedulePage({
                 )}
                 {o.reason && <span className="text-[#14261F]/40"> · {o.reason}</span>}
               </div>
-              <button
-                onClick={() => handleDelete(o.id)}
-                className="text-xs text-red-500 hover:underline"
-              >
+              <button onClick={() => handleDelete(o.id)} className="text-xs text-red-500 hover:underline">
                 Remove
               </button>
             </div>
           ))}
         </div>
 
-        <form
-          onSubmit={handleAddOverride}
-          className="bg-white border border-black/10 rounded-2xl p-6 space-y-4"
-        >
+        <form onSubmit={handleAddOverride} className="bg-white border border-black/10 rounded-2xl p-6 space-y-4">
           <h2 className="text-sm font-semibold text-[#14261F]">Add an exception</h2>
 
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setType("add")}
-              className={`flex-1 text-sm rounded-lg py-2 border ${
-                type === "add"
-                  ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]"
-                  : "bg-white text-[#14261F] border-black/15"
-              }`}
+              className={`flex-1 text-sm rounded-lg py-2 border ${type === "add" ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]" : "bg-white text-[#14261F] border-black/15"}`}
             >
               Add extra shift
             </button>
             <button
               type="button"
               onClick={() => setType("remove")}
-              className={`flex-1 text-sm rounded-lg py-2 border ${
-                type === "remove"
-                  ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]"
-                  : "bg-white text-[#14261F] border-black/15"
-              }`}
+              className={`flex-1 text-sm rounded-lg py-2 border ${type === "remove" ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]" : "bg-white text-[#14261F] border-black/15"}`}
             >
               Block a day
             </button>
@@ -208,29 +172,17 @@ export default function GroomerSchedulePage({
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-[#14261F] mb-1">From</label>
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-                />
+                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]" />
               </div>
               <div className="flex-1">
                 <label className="block text-sm font-medium text-[#14261F] mb-1">To</label>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-                />
+                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]" />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-[#14261F] mb-1">
-              Reason (optional)
-            </label>
+            <label className="block text-sm font-medium text-[#14261F] mb-1">Reason (optional)</label>
             <input
               type="text"
               value={reason}

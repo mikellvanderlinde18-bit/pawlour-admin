@@ -65,6 +65,12 @@
       "namedRegex": "^/dashboard/bookings(?:/)?$"
     },
     {
+      "page": "/dashboard/bookings/new",
+      "regex": "^/dashboard/bookings/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/bookings/new(?:/)?$"
+    },
+    {
       "page": "/dashboard/groomers",
       "regex": "^/dashboard/groomers(?:/)?$",
       "routeKeys": {},
@@ -75,6 +81,24 @@
       "regex": "^/dashboard/hours(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard/hours(?:/)?$"
+    },
+    {
+      "page": "/dashboard/offers",
+      "regex": "^/dashboard/offers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/offers(?:/)?$"
+    },
+    {
+      "page": "/dashboard/reports",
+      "regex": "^/dashboard/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/reports(?:/)?$"
+    },
+    {
+      "page": "/dashboard/rewards",
+      "regex": "^/dashboard/rewards(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/rewards(?:/)?$"
     },
     {
       "page": "/dashboard/services",

@@ -28,8 +28,6 @@ export default async function DashboardPage() {
   };
 
   const parlours = (staffRows ?? []) as unknown as { role: string; parlour: ParlourInfo }[];
-  // For now, default to the first parlour this user belongs to.
-  // Once a parlour switcher exists, this becomes user-selectable instead of hardcoded to [0].
   const staffRow = parlours[0];
   const parlour = staffRow?.parlour;
 
@@ -45,73 +43,60 @@ export default async function DashboardPage() {
 
         {parlour ? (
           <>
-          <div className="bg-white border border-black/10 rounded-2xl p-6 grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <div className="text-[#14261F]/50">Subdomain</div>
-              <div className="font-medium text-[#14261F]">{parlour.subdomain}.pawlour.app</div>
-            </div>
-            <div>
-              <div className="text-[#14261F]/50">Tier</div>
-              <div className="font-medium text-[#14261F] capitalize">{parlour.tier}</div>
-            </div>
-            <div>
-              <div className="text-[#14261F]/50">Status</div>
-              <div className="font-medium text-[#14261F] capitalize">{parlour.status}</div>
-            </div>
-            <div>
-              <div className="text-[#14261F]/50">Trial ends</div>
-              <div className="font-medium text-[#14261F]">
-                {new Date(parlour.trial_ends_at).toLocaleDateString("en-ZA", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+            <div className="bg-white border border-black/10 rounded-2xl p-6 grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <div className="text-[#14261F]/50">Subdomain</div>
+                <div className="font-medium text-[#14261F]">{parlour.subdomain}.pawlour.app</div>
+              </div>
+              <div>
+                <div className="text-[#14261F]/50">Tier</div>
+                <div className="font-medium text-[#14261F] capitalize">{parlour.tier}</div>
+              </div>
+              <div>
+                <div className="text-[#14261F]/50">Status</div>
+                <div className="font-medium text-[#14261F] capitalize">{parlour.status}</div>
+              </div>
+              <div>
+                <div className="text-[#14261F]/50">Trial ends</div>
+                <div className="font-medium text-[#14261F]">
+                  {new Date(parlour.trial_ends_at).toLocaleDateString("en-ZA", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          <a
-            href="/dashboard/hours"
-            className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
-          >
-            Opening hours →
-          </a>
-          <a
-            href="/dashboard/reports"
-            className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
-          >
-            Reports →
-          </a>
-          <a
-            href="/dashboard/rewards"
-            className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
-          >
-            Rewards →
-          </a>
-          <a
-            href="/dashboard/offers"
-            className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
-          >
-            Offers →
-          </a>
-          <a
-            href="/dashboard/bookings"
-            className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
-          >
-            Bookings →
-          </a>
-          <a
-            href="/dashboard/services"
-            className="inline-block mt-4 mr-4 text-sm font-semibold text-[#14261F] underline"
-          >
-            Manage services &amp; pricing →
-          </a>
-          <a
-            href="/dashboard/groomers"
-            className="inline-block mt-4 text-sm font-semibold text-[#14261F] underline"
-          >
-            Manage groomers →
-          </a>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4">
+              <a href="/dashboard/bookings" className="text-sm font-semibold text-[#14261F] underline">
+                Bookings →
+              </a>
+              <a href="/dashboard/bookings/new" className="text-sm font-semibold text-[#14261F] underline">
+                New booking →
+              </a>
+              <a href="/dashboard/services" className="text-sm font-semibold text-[#14261F] underline">
+                Manage services &amp; pricing →
+              </a>
+              <a href="/dashboard/groomers" className="text-sm font-semibold text-[#14261F] underline">
+                Manage groomers →
+              </a>
+              <a href="/dashboard/hours" className="text-sm font-semibold text-[#14261F] underline">
+                Opening hours →
+              </a>
+              <a href="/dashboard/rewards" className="text-sm font-semibold text-[#14261F] underline">
+                Rewards →
+              </a>
+              <a href="/dashboard/offers" className="text-sm font-semibold text-[#14261F] underline">
+                Offers →
+              </a>
+              <a href="/dashboard/reports" className="text-sm font-semibold text-[#14261F] underline">
+                Reports →
+              </a>
+              <a href="/dashboard/branding" className="text-sm font-semibold text-[#14261F] underline">
+                Branding →
+              </a>
+            </div>
           </>
         ) : (
           <div className="bg-white border border-black/10 rounded-2xl p-6 text-sm text-[#14261F]/60">

@@ -40,12 +40,7 @@ export default function OffersPage() {
       return;
     }
 
-    const { data: staffRow } = await supabase
-      .from("parlour_staff")
-      .select("parlour_id")
-      .eq("auth_user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: staffRow } = await supabase.from("parlour_staff").select("parlour_id").eq("auth_user_id", user.id).limit(1).maybeSingle();
 
     if (!staffRow) {
       setLoading(false);
@@ -119,20 +114,12 @@ export default function OffersPage() {
           ← Back to dashboard
         </a>
         <h1 className="text-2xl font-semibold text-[#14261F] mt-2 mb-1">Offers</h1>
-        <p className="text-sm text-[#14261F]/60 mb-8">
-          Deals and specials your clients will see in their app.
-        </p>
+        <p className="text-sm text-[#14261F]/60 mb-8">Deals and specials your clients will see in their app.</p>
 
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">
-            {error}
-          </div>
-        )}
+        {error && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">{error}</div>}
 
         <div className="space-y-3 mb-8">
-          {offers.length === 0 && (
-            <p className="text-sm text-[#14261F]/50 italic">No offers yet.</p>
-          )}
+          {offers.length === 0 && <p className="text-sm text-[#14261F]/50 italic">No offers yet.</p>}
           {offers.map((offer) => (
             <div key={offer.id} className="bg-white border border-black/10 rounded-2xl p-5 flex items-start justify-between">
               <div>
@@ -144,16 +131,10 @@ export default function OffersPage() {
                     </span>
                   )}
                 </div>
-                {offer.description && (
-                  <p className="text-xs text-[#14261F]/60 mb-1">{offer.description}</p>
-                )}
+                {offer.description && <p className="text-xs text-[#14261F]/60 mb-1">{offer.description}</p>}
                 <p className="text-xs text-[#14261F]/40 capitalize">
                   {offer.audience === "all" ? "All clients" : offer.audience}
-                  {offer.ends_at &&
-                    ` · ends ${new Date(offer.ends_at).toLocaleDateString("en-ZA", {
-                      day: "numeric",
-                      month: "short",
-                    })}`}
+                  {offer.ends_at && ` · ends ${new Date(offer.ends_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}`}
                 </p>
               </div>
               <button onClick={() => handleDelete(offer.id)} className="text-xs text-red-500 hover:underline">
@@ -195,33 +176,20 @@ export default function OffersPage() {
             </div>
             <div>
               <label className="block text-xs font-medium text-[#14261F] mb-1">Ends on (optional)</label>
-              <input
-                type="date"
-                value={endsAt}
-                onChange={(e) => setEndsAt(e.target.value)}
-                className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-              />
+              <input type="date" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]" />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-[#14261F] mb-1">Audience</label>
-            <select
-              value={audience}
-              onChange={(e) => setAudience(e.target.value as typeof audience)}
-              className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-            >
+            <select value={audience} onChange={(e) => setAudience(e.target.value as typeof audience)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]">
               <option value="all">All clients</option>
               <option value="lapsed">Haven&apos;t booked in a while</option>
               <option value="loyal">Loyal / repeat clients</option>
             </select>
           </div>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-[#14261F] text-[#FAF6EF] rounded-full py-2.5 text-sm font-semibold disabled:opacity-50"
-          >
+          <button type="submit" disabled={saving} className="w-full bg-[#14261F] text-[#FAF6EF] rounded-full py-2.5 text-sm font-semibold disabled:opacity-50">
             {saving ? "Saving…" : "Create offer"}
           </button>
         </form>

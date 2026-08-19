@@ -47,7 +47,6 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Step 1: create the parlour
     const { data: parlour, error: parlourError } = await supabase
       .from("parlour")
       .insert({
@@ -72,7 +71,6 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Step 2: make this user the owner
     const { error: staffError } = await supabase.from("parlour_staff").insert({
       parlour_id: parlour.id,
       auth_user_id: user.id,
@@ -98,19 +96,12 @@ export default function OnboardingPage() {
             Step 1 of 7 · Business basics
           </div>
           <h1 className="text-2xl font-semibold text-[#14261F]">Tell us about your parlour</h1>
-          <p className="text-sm text-[#14261F]/60 mt-1">
-            This sets up your booking page and dashboard.
-          </p>
+          <p className="text-sm text-[#14261F]/60 mt-1">This sets up your booking page and dashboard.</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white border border-black/10 rounded-2xl p-6 space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="bg-white border border-black/10 rounded-2xl p-6 space-y-4">
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </div>
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>
           )}
 
           <div>
@@ -125,16 +116,13 @@ export default function OnboardingPage() {
             />
             {subdomain && (
               <p className="text-xs text-[#14261F]/50 mt-1.5">
-                Your booking link will be{" "}
-                <span className="font-medium text-[#14261F]">{subdomain}.pawlour.app</span>
+                Your booking link will be <span className="font-medium text-[#14261F]">{subdomain}.pawlour.app</span>
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#14261F] mb-1">
-              Contact email
-            </label>
+            <label className="block text-sm font-medium text-[#14261F] mb-1">Contact email</label>
             <input
               type="email"
               value={contactEmail}
@@ -145,9 +133,7 @@ export default function OnboardingPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#14261F] mb-1">
-              Contact phone
-            </label>
+            <label className="block text-sm font-medium text-[#14261F] mb-1">Contact phone</label>
             <input
               type="tel"
               value={contactPhone}

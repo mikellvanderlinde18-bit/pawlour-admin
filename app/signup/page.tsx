@@ -35,19 +35,12 @@ export default function SignupPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-semibold text-[#14261F]">Set up your parlour</h1>
-          <p className="text-sm text-[#14261F]/60 mt-1">
-            Create your account to get started with Pawlour
-          </p>
+          <p className="text-sm text-[#14261F]/60 mt-1">Create your account to get started with Pawlour</p>
         </div>
 
-        <form
-          onSubmit={handleSignup}
-          className="bg-white border border-black/10 rounded-2xl p-6 space-y-4"
-        >
+        <form onSubmit={handleSignup} className="bg-white border border-black/10 rounded-2xl p-6 space-y-4">
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </div>
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>
           )}
 
           <div>

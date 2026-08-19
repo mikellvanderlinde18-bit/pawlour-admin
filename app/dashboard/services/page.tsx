@@ -3,13 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-type PriceRule = {
-  id: string;
-  attribute_type: string | null;
-  attribute_value: string | null;
-  price: number;
-};
-
+type PriceRule = { id: string; attribute_type: string | null; attribute_value: string | null; price: number };
 type Service = {
   id: string;
   name: string;
@@ -29,7 +23,6 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // New service form state
   const [name, setName] = useState("");
   const [duration, setDuration] = useState(60);
   const [usesAttribute, setUsesAttribute] = useState(false);
@@ -68,7 +61,9 @@ export default function ServicesPage() {
 
     const { data: serviceRows, error: serviceError } = await supabase
       .from("service")
-      .select("id, name, description, duration_minutes, active, requires_groomer_selection, concurrent_capacity, price_rule(id, attribute_type, attribute_value, price)")
+      .select(
+        "id, name, description, duration_minutes, active, requires_groomer_selection, concurrent_capacity, price_rule(id, attribute_type, attribute_value, price)"
+      )
       .eq("parlour_id", staffRow.parlour_id)
       .order("created_at", { ascending: true });
 
@@ -107,7 +102,6 @@ export default function ServicesPage() {
       setError("No parlour found for this account.");
       return;
     }
-
     if (!name.trim()) {
       setError("Please enter a service name.");
       return;
@@ -133,7 +127,6 @@ export default function ServicesPage() {
       return;
     }
 
-    // Build price rules: either one flat price, or one row per attribute value
     type PriceRuleInsert = {
       service_id: string;
       attribute_type: string | null;
@@ -174,7 +167,6 @@ export default function ServicesPage() {
       return;
     }
 
-    // Reset form
     setName("");
     setDuration(60);
     setUsesAttribute(false);
@@ -211,64 +203,41 @@ export default function ServicesPage() {
         </p>
 
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">
-            {error}
-          </div>
+          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">{error}</div>
         )}
 
-        {/* Existing services */}
         <div className="space-y-3 mb-8">
-          {services.length === 0 && (
-            <p className="text-sm text-[#14261F]/50 italic">No services added yet.</p>
-          )}
+          {services.length === 0 && <p className="text-sm text-[#14261F]/50 italic">No services added yet.</p>}
 
           {services.map((service) => (
-            <div
-              key={service.id}
-              className="bg-white border border-black/10 rounded-2xl p-5 flex items-start justify-between"
-            >
+            <div key={service.id} className="bg-white border border-black/10 rounded-2xl p-5 flex items-start justify-between">
               <div>
                 <div className="font-semibold text-[#14261F]">{service.name}</div>
                 <div className="text-xs text-[#14261F]/50 mb-2">
                   {service.duration_minutes} min ·{" "}
-                  {service.requires_groomer_selection
-                    ? "clients choose groomer"
-                    : `capacity: ${service.concurrent_capacity} at once`}
+                  {service.requires_groomer_selection ? "clients choose groomer" : `capacity: ${service.concurrent_capacity} at once`}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {service.price_rule.map((rule) => (
-                    <span
-                      key={rule.id}
-                      className="text-xs bg-[#FAF6EF] border border-black/10 rounded-full px-3 py-1 text-[#14261F]"
-                    >
-                      {rule.attribute_value ? `${rule.attribute_value}: ` : ""}R
-                      {Number(rule.price).toFixed(2)}
+                    <span key={rule.id} className="text-xs bg-[#FAF6EF] border border-black/10 rounded-full px-3 py-1 text-[#14261F]">
+                      {rule.attribute_value ? `${rule.attribute_value}: ` : ""}R{Number(rule.price).toFixed(2)}
                     </span>
                   ))}
                 </div>
               </div>
-              <button
-                onClick={() => handleDeleteService(service.id)}
-                className="text-xs text-red-500 hover:underline"
-              >
+              <button onClick={() => handleDeleteService(service.id)} className="text-xs text-red-500 hover:underline">
                 Remove
               </button>
             </div>
           ))}
         </div>
 
-        {/* Add new service form */}
-        <form
-          onSubmit={handleAddService}
-          className="bg-white border border-black/10 rounded-2xl p-6 space-y-4"
-        >
+        <form onSubmit={handleAddService} className="bg-white border border-black/10 rounded-2xl p-6 space-y-4">
           <h2 className="text-sm font-semibold text-[#14261F]">Add a service</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#14261F] mb-1">
-                Service name
-              </label>
+              <label className="block text-sm font-medium text-[#14261F] mb-1">Service name</label>
               <input
                 type="text"
                 value={name}
@@ -278,9 +247,7 @@ export default function ServicesPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#14261F] mb-1">
-                Duration (minutes)
-              </label>
+              <label className="block text-sm font-medium text-[#14261F] mb-1">Duration (minutes)</label>
               <input
                 type="number"
                 min={5}
@@ -306,9 +273,7 @@ export default function ServicesPage() {
           </div>
           {!requiresGroomer && (
             <div>
-              <label className="block text-sm font-medium text-[#14261F] mb-1">
-                How many can you do at once?
-              </label>
+              <label className="block text-sm font-medium text-[#14261F] mb-1">How many can you do at once?</label>
               <input
                 type="number"
                 min={1}
@@ -317,8 +282,8 @@ export default function ServicesPage() {
                 className="w-32 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
               />
               <p className="text-xs text-[#14261F]/50 mt-1">
-                e.g. 2 wash stations means you can do 2 washes at the same time. Clients
-                won&apos;t pick a specific groomer — you&apos;ll assign it internally.
+                e.g. 2 wash stations means you can do 2 washes at the same time. Clients won&apos;t pick a specific
+                groomer — you&apos;ll assign it internally.
               </p>
             </div>
           )}
@@ -338,9 +303,7 @@ export default function ServicesPage() {
 
           {!usesAttribute ? (
             <div>
-              <label className="block text-sm font-medium text-[#14261F] mb-1">
-                Price (R)
-              </label>
+              <label className="block text-sm font-medium text-[#14261F] mb-1">Price (R)</label>
               <input
                 type="number"
                 step="0.01"
@@ -353,9 +316,7 @@ export default function ServicesPage() {
           ) : (
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-[#14261F] mb-1">
-                  Attribute name
-                </label>
+                <label className="block text-sm font-medium text-[#14261F] mb-1">Attribute name</label>
                 <input
                   type="text"
                   value={attributeType}
@@ -383,22 +344,14 @@ export default function ServicesPage() {
                     placeholder="R"
                   />
                   {attributeRows.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeAttributeRow(i)}
-                      className="text-xs text-red-500"
-                    >
+                    <button type="button" onClick={() => removeAttributeRow(i)} className="text-xs text-red-500">
                       ✕
                     </button>
                   )}
                 </div>
               ))}
 
-              <button
-                type="button"
-                onClick={addAttributeRow}
-                className="text-xs text-[#14261F]/60 underline"
-              >
+              <button type="button" onClick={addAttributeRow} className="text-xs text-[#14261F]/60 underline">
                 + Add another value
               </button>
             </div>

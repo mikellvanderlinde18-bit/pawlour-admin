@@ -29,12 +29,7 @@ export default function ReportsPage() {
       return;
     }
 
-    const { data: staffRow } = await supabase
-      .from("parlour_staff")
-      .select("parlour_id")
-      .eq("auth_user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: staffRow } = await supabase.from("parlour_staff").select("parlour_id").eq("auth_user_id", user.id).limit(1).maybeSingle();
 
     if (!staffRow) {
       setLoading(false);
@@ -49,10 +44,7 @@ export default function ReportsPage() {
         .select("price, status, starts_at, service:service_id(name), groomer:groomer_id(name)")
         .eq("parlour_id", staffRow.parlour_id)
         .gte("starts_at", thirtyDaysAgo),
-      supabase
-        .from("client")
-        .select("id", { count: "exact", head: true })
-        .eq("parlour_id", staffRow.parlour_id),
+      supabase.from("client").select("id", { count: "exact", head: true }).eq("parlour_id", staffRow.parlour_id),
     ]);
 
     setBookings((bookingRows ?? []) as unknown as BookingRow[]);
@@ -122,9 +114,7 @@ export default function ReportsPage() {
 
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white border border-black/10 rounded-2xl p-5">
-            <p className="text-xs font-semibold text-[#14261F]/50 uppercase tracking-wide mb-3">
-              Popular services
-            </p>
+            <p className="text-xs font-semibold text-[#14261F]/50 uppercase tracking-wide mb-3">Popular services</p>
             {topServices.length === 0 ? (
               <p className="text-xs text-[#14261F]/40 italic">No data yet</p>
             ) : (
@@ -139,9 +129,7 @@ export default function ReportsPage() {
             )}
           </div>
           <div className="bg-white border border-black/10 rounded-2xl p-5">
-            <p className="text-xs font-semibold text-[#14261F]/50 uppercase tracking-wide mb-3">
-              Busiest groomers
-            </p>
+            <p className="text-xs font-semibold text-[#14261F]/50 uppercase tracking-wide mb-3">Busiest groomers</p>
             {topGroomers.length === 0 ? (
               <p className="text-xs text-[#14261F]/40 italic">No data yet</p>
             ) : (

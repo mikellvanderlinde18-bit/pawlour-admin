@@ -51,8 +51,7 @@ export default function ParlourHoursPage() {
     setParlourId(staffRow.parlour_id);
 
     const hours =
-      (staffRow.parlour as unknown as { weekly_hours: Record<string, [string, string]> } | null)
-        ?.weekly_hours ?? {};
+      (staffRow.parlour as unknown as { weekly_hours: Record<string, [string, string]> } | null)?.weekly_hours ?? {};
 
     const active: Record<string, boolean> = {};
     const times: Record<string, [string, string]> = {};
@@ -98,10 +97,7 @@ export default function ParlourHoursPage() {
       }
     }
 
-    const { error: updateError } = await supabase
-      .from("parlour")
-      .update({ weekly_hours: weeklyHours })
-      .eq("id", parlourId);
+    const { error: updateError } = await supabase.from("parlour").update({ weekly_hours: weeklyHours }).eq("id", parlourId);
 
     setSaving(false);
 
@@ -128,31 +124,22 @@ export default function ParlourHoursPage() {
         </a>
         <h1 className="text-2xl font-semibold text-[#14261F] mt-2 mb-1">Opening hours</h1>
         <p className="text-sm text-[#14261F]/60 mb-8">
-          Used for services where clients don&apos;t pick a specific groomer — booking against
-          your overall capacity instead.
+          Used for services where clients don&apos;t pick a specific groomer — booking against your overall capacity
+          instead.
         </p>
 
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
-            {error}
-          </div>
+          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">{error}</div>
         )}
         {saved && (
-          <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">
-            Saved.
-          </div>
+          <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">Saved.</div>
         )}
 
         <div className="bg-white border border-black/10 rounded-2xl p-6 space-y-3">
           {DAYS.map((day) => (
             <div key={day.key} className="flex items-center gap-3">
               <label className="flex items-center gap-2 w-28">
-                <input
-                  type="checkbox"
-                  checked={!!activeDays[day.key]}
-                  onChange={() => toggleDay(day.key)}
-                  className="rounded border-black/20"
-                />
+                <input type="checkbox" checked={!!activeDays[day.key]} onChange={() => toggleDay(day.key)} className="rounded border-black/20" />
                 <span className="text-sm text-[#14261F]">{day.label}</span>
               </label>
               {activeDays[day.key] && (

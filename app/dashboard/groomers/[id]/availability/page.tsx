@@ -6,11 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 type Service = { id: string; name: string; duration_minutes: number };
 type Slot = { slot_start: string; slot_end: string };
 
-export default function AvailabilityPreviewPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function AvailabilityPreviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: groomerId } = use(params);
   const supabase = createClient();
 
@@ -34,9 +30,9 @@ export default function AvailabilityPreviewPage({
 
     setGroomerName(groomer?.name ?? "Groomer");
 
-    const linkedServices = (
-      (groomer?.groomer_service ?? []) as unknown as { service: Service }[]
-    ).map((gs) => gs.service);
+    const linkedServices = ((groomer?.groomer_service ?? []) as unknown as { service: Service }[]).map(
+      (gs) => gs.service
+    );
 
     setServices(linkedServices);
     if (linkedServices.length > 0) setServiceId(linkedServices[0].id);
@@ -94,18 +90,15 @@ export default function AvailabilityPreviewPage({
         <a href="/dashboard/groomers" className="text-xs text-[#14261F]/50 hover:underline">
           ← Back to groomers
         </a>
-        <h1 className="text-2xl font-semibold text-[#14261F] mt-2 mb-1">
-          {groomerName}&apos;s availability
-        </h1>
+        <h1 className="text-2xl font-semibold text-[#14261F] mt-2 mb-1">{groomerName}&apos;s availability</h1>
         <p className="text-sm text-[#14261F]/60 mb-8">
-          This is exactly what a client would see when booking — calculated live from weekly
-          hours, schedule exceptions, and existing bookings.
+          This is exactly what a client would see when booking — calculated live from weekly hours, schedule
+          exceptions, and existing bookings.
         </p>
 
         {services.length === 0 ? (
           <div className="bg-white border border-black/10 rounded-2xl p-6 text-sm text-[#14261F]/60">
-            This groomer isn&apos;t linked to any services yet — add that on the Groomers page
-            first.
+            This groomer isn&apos;t linked to any services yet — add that on the Groomers page first.
           </div>
         ) : (
           <>
@@ -136,29 +129,18 @@ export default function AvailabilityPreviewPage({
             </div>
 
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">
-                {error}
-              </div>
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">{error}</div>
             )}
 
             {checking ? (
               <p className="text-sm text-[#14261F]/50">Checking availability…</p>
             ) : slots.length === 0 ? (
-              <p className="text-sm text-[#14261F]/50 italic">
-                No available slots on this date.
-              </p>
+              <p className="text-sm text-[#14261F]/50 italic">No available slots on this date.</p>
             ) : (
               <div className="grid grid-cols-4 gap-2">
                 {slots.map((slot) => (
-                  <div
-                    key={slot.slot_start}
-                    className="bg-white border border-black/10 rounded-lg text-center py-2 text-sm text-[#14261F]"
-                  >
-                    {new Date(slot.slot_start).toLocaleTimeString("en-ZA", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    })}
+                  <div key={slot.slot_start} className="bg-white border border-black/10 rounded-lg text-center py-2 text-sm text-[#14261F]">
+                    {new Date(slot.slot_start).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", hour12: false })}
                   </div>
                 ))}
               </div>

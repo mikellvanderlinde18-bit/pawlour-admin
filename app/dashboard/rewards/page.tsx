@@ -39,12 +39,7 @@ export default function RewardsPage() {
       return;
     }
 
-    const { data: staffRow } = await supabase
-      .from("parlour_staff")
-      .select("parlour_id")
-      .eq("auth_user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+    const { data: staffRow } = await supabase.from("parlour_staff").select("parlour_id").eq("auth_user_id", user.id).limit(1).maybeSingle();
 
     if (!staffRow) {
       setLoading(false);
@@ -118,20 +113,10 @@ export default function RewardsPage() {
           ← Back to dashboard
         </a>
         <h1 className="text-2xl font-semibold text-[#14261F] mt-2 mb-1">Rewards programme</h1>
-        <p className="text-sm text-[#14261F]/60 mb-8">
-          Reward loyal clients automatically — no punch cards, tracked for every booking.
-        </p>
+        <p className="text-sm text-[#14261F]/60 mb-8">Reward loyal clients automatically — no punch cards, tracked for every booking.</p>
 
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
-            {error}
-          </div>
-        )}
-        {saved && (
-          <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">
-            Saved.
-          </div>
-        )}
+        {error && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">{error}</div>}
+        {saved && <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">Saved.</div>}
 
         <div className="bg-white border border-black/10 rounded-2xl p-6 space-y-5">
           <div className="flex items-center justify-between">
@@ -141,15 +126,9 @@ export default function RewardsPage() {
             </div>
             <button
               onClick={() => setEnabled(!enabled)}
-              className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${
-                enabled ? "bg-[#14261F]" : "bg-black/15"
-              }`}
+              className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${enabled ? "bg-[#14261F]" : "bg-black/15"}`}
             >
-              <span
-                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-                  enabled ? "translate-x-5" : "translate-x-0.5"
-                }`}
-              />
+              <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${enabled ? "translate-x-5" : "translate-x-0.5"}`} />
             </button>
           </div>
 
@@ -158,17 +137,13 @@ export default function RewardsPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setTriggerType("visit_count")}
-                className={`flex-1 text-xs rounded-lg py-2 border ${
-                  triggerType === "visit_count" ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]" : "border-black/15 text-[#14261F]"
-                }`}
+                className={`flex-1 text-xs rounded-lg py-2 border ${triggerType === "visit_count" ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]" : "border-black/15 text-[#14261F]"}`}
               >
                 Number of visits
               </button>
               <button
                 onClick={() => setTriggerType("spend_total")}
-                className={`flex-1 text-xs rounded-lg py-2 border ${
-                  triggerType === "spend_total" ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]" : "border-black/15 text-[#14261F]"
-                }`}
+                className={`flex-1 text-xs rounded-lg py-2 border ${triggerType === "spend_total" ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]" : "border-black/15 text-[#14261F]"}`}
               >
                 Amount spent (R)
               </button>
@@ -190,11 +165,7 @@ export default function RewardsPage() {
 
           <div>
             <label className="block text-sm font-medium text-[#14261F] mb-1">Reward</label>
-            <select
-              value={rewardType}
-              onChange={(e) => setRewardType(e.target.value as typeof rewardType)}
-              className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] mb-2"
-            >
+            <select value={rewardType} onChange={(e) => setRewardType(e.target.value as typeof rewardType)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] mb-2">
               <option value="free_service">Free service</option>
               <option value="percent_discount">Percentage discount</option>
               <option value="fixed_discount">Fixed amount off (R)</option>
@@ -212,15 +183,11 @@ export default function RewardsPage() {
           </div>
 
           <p className="text-xs text-[#14261F]/50 bg-[#FAF6EF] rounded-lg px-3 py-2">
-            e.g. &quot;Every {threshold} {triggerType === "visit_count" ? "visits" : "Rand spent"}, the
-            client gets a {rewardType === "free_service" ? "free service" : rewardType === "percent_discount" ? `${rewardValue || "X"}% discount` : `R${rewardValue || "X"} off`}.&quot;
+            e.g. &quot;Every {threshold} {triggerType === "visit_count" ? "visits" : "Rand spent"}, the client gets a{" "}
+            {rewardType === "free_service" ? "free service" : rewardType === "percent_discount" ? `${rewardValue || "X"}% discount` : `R${rewardValue || "X"} off`}.&quot;
           </p>
 
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full bg-[#14261F] text-[#FAF6EF] rounded-full py-2.5 text-sm font-semibold disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={saving} className="w-full bg-[#14261F] text-[#FAF6EF] rounded-full py-2.5 text-sm font-semibold disabled:opacity-50">
             {saving ? "Saving…" : "Save rewards programme"}
           </button>
         </div>

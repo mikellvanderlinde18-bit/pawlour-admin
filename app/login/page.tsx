@@ -38,14 +38,9 @@ export default function LoginPage() {
           <p className="text-sm text-[#14261F]/60 mt-1">Sign in to your parlour dashboard</p>
         </div>
 
-        <form
-          onSubmit={handleLogin}
-          className="bg-white border border-black/10 rounded-2xl p-6 space-y-4"
-        >
+        <form onSubmit={handleLogin} className="bg-white border border-black/10 rounded-2xl p-6 space-y-4">
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {error}
-            </div>
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>
           )}
 
           <div>
@@ -81,9 +76,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-[#14261F]/50 mt-6">
-          Pawlour · a WorkInFlow product
-        </p>
+        <p className="text-center text-xs text-[#14261F]/50 mt-6">Pawlour · a WorkInFlow product</p>
       </div>
     </div>
   );

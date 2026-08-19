@@ -38,7 +38,6 @@ export default function NewBookingPage() {
   const [manualPriceRuleId, setManualPriceRuleId] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // New client / dog quick-add
   const [showNewClient, setShowNewClient] = useState(false);
   const [newClientName, setNewClientName] = useState("");
   const [newClientPhone, setNewClientPhone] = useState("");
@@ -74,16 +73,8 @@ export default function NewBookingPage() {
     setParlourId(staffRow.parlour_id);
 
     const [{ data: serviceRows }, { data: clientRows }] = await Promise.all([
-      supabase
-        .from("service")
-        .select("id, name, duration_minutes")
-        .eq("parlour_id", staffRow.parlour_id)
-        .order("name"),
-      supabase
-        .from("client")
-        .select("id, name, phone")
-        .eq("parlour_id", staffRow.parlour_id)
-        .order("name"),
+      supabase.from("service").select("id, name, duration_minutes").eq("parlour_id", staffRow.parlour_id).order("name"),
+      supabase.from("client").select("id, name, phone").eq("parlour_id", staffRow.parlour_id).order("name"),
     ]);
 
     setServices(serviceRows ?? []);
@@ -95,7 +86,6 @@ export default function NewBookingPage() {
     loadInitial();
   }, [loadInitial]);
 
-  // When service changes: load its price rules and eligible groomers
   useEffect(() => {
     if (!serviceId) {
       setPriceRules([]);
@@ -106,34 +96,24 @@ export default function NewBookingPage() {
     (async () => {
       const [{ data: rules }, { data: groomerLinks }] = await Promise.all([
         supabase.from("price_rule").select("id, attribute_type, attribute_value, price").eq("service_id", serviceId),
-        supabase
-          .from("groomer_service")
-          .select("groomer:groomer_id(id, name)")
-          .eq("service_id", serviceId),
+        supabase.from("groomer_service").select("groomer:groomer_id(id, name)").eq("service_id", serviceId),
       ]);
 
       setPriceRules(rules ?? []);
-      setGroomers(
-        ((groomerLinks ?? []) as unknown as { groomer: Groomer }[]).map((g) => g.groomer)
-      );
+      setGroomers(((groomerLinks ?? []) as unknown as { groomer: Groomer }[]).map((g) => g.groomer));
       setGroomerId("");
       setSlots([]);
       setSelectedSlot(null);
     })();
   }, [serviceId, supabase]);
 
-  // When client changes: load their dogs
   useEffect(() => {
     if (!clientId) {
       setDogs([]);
       return;
     }
     (async () => {
-      const { data } = await supabase
-        .from("dog")
-        .select("id, name, size, coat_type")
-        .eq("client_id", clientId)
-        .order("name");
+      const { data } = await supabase.from("dog").select("id, name, size, coat_type").eq("client_id", clientId).order("name");
       setDogs(data ?? []);
       setDogId("");
     })();
@@ -164,7 +144,6 @@ export default function NewBookingPage() {
     checkAvailability();
   }, [checkAvailability]);
 
-  // Resolve price: try to auto-match dog's attribute to a price rule, else require manual pick
   const flatRule = priceRules.find((r) => !r.attribute_type);
   const attributeRules = priceRules.filter((r) => r.attribute_type);
   const selectedDog = dogs.find((d) => d.id === dogId);
@@ -173,11 +152,7 @@ export default function NewBookingPage() {
   if (attributeRules.length > 0 && selectedDog) {
     for (const rule of attributeRules) {
       const dogValue =
-        rule.attribute_type === "size"
-          ? selectedDog.size
-          : rule.attribute_type === "coat_type"
-          ? selectedDog.coat_type
-          : null;
+        rule.attribute_type === "size" ? selectedDog.size : rule.attribute_type === "coat_type" ? selectedDog.coat_type : null;
       if (dogValue && dogValue.toLowerCase() === rule.attribute_value?.toLowerCase()) {
         autoMatchedRule = rule;
         break;
@@ -185,11 +160,7 @@ export default function NewBookingPage() {
     }
   }
 
-  const resolvedRule =
-    flatRule ??
-    autoMatchedRule ??
-    priceRules.find((r) => r.id === manualPriceRuleId) ??
-    null;
+  const resolvedRule = flatRule ?? autoMatchedRule ?? priceRules.find((r) => r.id === manualPriceRuleId) ?? null;
 
   async function handleCreateClient() {
     if (!newClientName.trim() || !parlourId) return;
@@ -213,12 +184,7 @@ export default function NewBookingPage() {
     if (!newDogName.trim() || !clientId) return;
     const { data, error: dogError } = await supabase
       .from("dog")
-      .insert({
-        client_id: clientId,
-        name: newDogName.trim(),
-        size: newDogSize.trim() || null,
-        coat_type: newDogCoat.trim() || null,
-      })
+      .insert({ client_id: clientId, name: newDogName.trim(), size: newDogSize.trim() || null, coat_type: newDogCoat.trim() || null })
       .select("id, name, size, coat_type")
       .single();
     if (dogError || !data) {
@@ -282,30 +248,15 @@ export default function NewBookingPage() {
           ← Back to bookings
         </a>
         <h1 className="text-2xl font-semibold text-[#14261F] mt-2 mb-1">New booking</h1>
-        <p className="text-sm text-[#14261F]/60 mb-8">
-          For phone or walk-in bookings — this uses the same availability engine clients will see.
-        </p>
+        <p className="text-sm text-[#14261F]/60 mb-8">For phone or walk-in bookings — this uses the same availability engine clients will see.</p>
 
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-6">
-            {success}
-          </div>
-        )}
+        {error && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">{error}</div>}
+        {success && <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-6">{success}</div>}
 
         <div className="bg-white border border-black/10 rounded-2xl p-6 space-y-5">
-          {/* Service */}
           <div>
             <label className="block text-sm font-medium text-[#14261F] mb-1">Service</label>
-            <select
-              value={serviceId}
-              onChange={(e) => setServiceId(e.target.value)}
-              className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-            >
+            <select value={serviceId} onChange={(e) => setServiceId(e.target.value)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]">
               <option value="">Select a service…</option>
               {services.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -315,20 +266,13 @@ export default function NewBookingPage() {
             </select>
           </div>
 
-          {/* Groomer */}
           {serviceId && (
             <div>
               <label className="block text-sm font-medium text-[#14261F] mb-1">Groomer</label>
               {groomers.length === 0 ? (
-                <p className="text-xs text-[#14261F]/50 italic">
-                  No groomer is linked to this service yet.
-                </p>
+                <p className="text-xs text-[#14261F]/50 italic">No groomer is linked to this service yet.</p>
               ) : (
-                <select
-                  value={groomerId}
-                  onChange={(e) => setGroomerId(e.target.value)}
-                  className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-                >
+                <select value={groomerId} onChange={(e) => setGroomerId(e.target.value)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]">
                   <option value="">Select a groomer…</option>
                   {groomers.map((g) => (
                     <option key={g.id} value={g.id}>
@@ -340,16 +284,10 @@ export default function NewBookingPage() {
             </div>
           )}
 
-          {/* Date + slots */}
           {groomerId && (
             <div>
               <label className="block text-sm font-medium text-[#14261F] mb-1">Date</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] mb-3"
-              />
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] mb-3" />
               {checkingSlots ? (
                 <p className="text-xs text-[#14261F]/50">Checking availability…</p>
               ) : slots.length === 0 ? (
@@ -362,16 +300,10 @@ export default function NewBookingPage() {
                       key={slot.slot_start}
                       onClick={() => setSelectedSlot(slot)}
                       className={`text-xs rounded-lg py-2 border ${
-                        selectedSlot?.slot_start === slot.slot_start
-                          ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]"
-                          : "bg-white text-[#14261F] border-black/15"
+                        selectedSlot?.slot_start === slot.slot_start ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]" : "bg-white text-[#14261F] border-black/15"
                       }`}
                     >
-                      {new Date(slot.slot_start).toLocaleTimeString("en-ZA", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      })}
+                      {new Date(slot.slot_start).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", hour12: false })}
                     </button>
                   ))}
                 </div>
@@ -379,15 +311,10 @@ export default function NewBookingPage() {
             </div>
           )}
 
-          {/* Client */}
           {selectedSlot && (
             <div>
               <label className="block text-sm font-medium text-[#14261F] mb-1">Client</label>
-              <select
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] mb-2"
-              >
+              <select value={clientId} onChange={(e) => setClientId(e.target.value)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] mb-2">
                 <option value="">Select a client…</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -396,34 +323,14 @@ export default function NewBookingPage() {
                 ))}
               </select>
               {!showNewClient ? (
-                <button
-                  type="button"
-                  onClick={() => setShowNewClient(true)}
-                  className="text-xs text-[#14261F]/60 underline"
-                >
+                <button type="button" onClick={() => setShowNewClient(true)} className="text-xs text-[#14261F]/60 underline">
                   + New client
                 </button>
               ) : (
                 <div className="flex gap-2 mt-2">
-                  <input
-                    type="text"
-                    value={newClientName}
-                    onChange={(e) => setNewClientName(e.target.value)}
-                    placeholder="Name"
-                    className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-                  />
-                  <input
-                    type="text"
-                    value={newClientPhone}
-                    onChange={(e) => setNewClientPhone(e.target.value)}
-                    placeholder="Phone"
-                    className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleCreateClient}
-                    className="text-xs bg-[#14261F] text-[#FAF6EF] rounded-lg px-3"
-                  >
+                  <input type="text" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} placeholder="Name" className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]" />
+                  <input type="text" value={newClientPhone} onChange={(e) => setNewClientPhone(e.target.value)} placeholder="Phone" className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]" />
+                  <button type="button" onClick={handleCreateClient} className="text-xs bg-[#14261F] text-[#FAF6EF] rounded-lg px-3">
                     Add
                   </button>
                 </div>
@@ -431,15 +338,10 @@ export default function NewBookingPage() {
             </div>
           )}
 
-          {/* Dog */}
           {clientId && (
             <div>
               <label className="block text-sm font-medium text-[#14261F] mb-1">Dog</label>
-              <select
-                value={dogId}
-                onChange={(e) => setDogId(e.target.value)}
-                className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] mb-2"
-              >
+              <select value={dogId} onChange={(e) => setDogId(e.target.value)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] mb-2">
                 <option value="">Select a dog…</option>
                 {dogs.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -448,41 +350,15 @@ export default function NewBookingPage() {
                 ))}
               </select>
               {!showNewDog ? (
-                <button
-                  type="button"
-                  onClick={() => setShowNewDog(true)}
-                  className="text-xs text-[#14261F]/60 underline"
-                >
+                <button type="button" onClick={() => setShowNewDog(true)} className="text-xs text-[#14261F]/60 underline">
                   + New dog
                 </button>
               ) : (
                 <div className="flex gap-2 mt-2 flex-wrap">
-                  <input
-                    type="text"
-                    value={newDogName}
-                    onChange={(e) => setNewDogName(e.target.value)}
-                    placeholder="Name"
-                    className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-                  />
-                  <input
-                    type="text"
-                    value={newDogSize}
-                    onChange={(e) => setNewDogSize(e.target.value)}
-                    placeholder="Size (e.g. Small)"
-                    className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-                  />
-                  <input
-                    type="text"
-                    value={newDogCoat}
-                    onChange={(e) => setNewDogCoat(e.target.value)}
-                    placeholder="Coat type"
-                    className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleCreateDog}
-                    className="text-xs bg-[#14261F] text-[#FAF6EF] rounded-lg px-3"
-                  >
+                  <input type="text" value={newDogName} onChange={(e) => setNewDogName(e.target.value)} placeholder="Name" className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]" />
+                  <input type="text" value={newDogSize} onChange={(e) => setNewDogSize(e.target.value)} placeholder="Size (e.g. Small)" className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]" />
+                  <input type="text" value={newDogCoat} onChange={(e) => setNewDogCoat(e.target.value)} placeholder="Coat type" className="flex-1 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]" />
+                  <button type="button" onClick={handleCreateDog} className="text-xs bg-[#14261F] text-[#FAF6EF] rounded-lg px-3">
                     Add
                   </button>
                 </div>
@@ -490,7 +366,6 @@ export default function NewBookingPage() {
             </div>
           )}
 
-          {/* Price resolution */}
           {dogId && priceRules.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-[#14261F] mb-1">Price</label>
@@ -501,14 +376,8 @@ export default function NewBookingPage() {
                 </p>
               ) : (
                 <div>
-                  <p className="text-xs text-[#14261F]/50 italic mb-2">
-                    Couldn&apos;t auto-match this dog to a price — pick manually.
-                  </p>
-                  <select
-                    value={manualPriceRuleId}
-                    onChange={(e) => setManualPriceRuleId(e.target.value)}
-                    className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-                  >
+                  <p className="text-xs text-[#14261F]/50 italic mb-2">Couldn&apos;t auto-match this dog to a price — pick manually.</p>
+                  <select value={manualPriceRuleId} onChange={(e) => setManualPriceRuleId(e.target.value)} className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]">
                     <option value="">Select a price…</option>
                     {attributeRules.map((r) => (
                       <option key={r.id} value={r.id}>
