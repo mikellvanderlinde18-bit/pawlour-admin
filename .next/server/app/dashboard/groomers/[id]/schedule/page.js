@@ -1,7 +1,7 @@
 var R=require("../../../../../chunks/ssr/[turbopack]_runtime.js")("server/app/dashboard/groomers/[id]/schedule/page.js")
 R.c("server/chunks/ssr/[root-of-the-server]__1vhatwb._.js")
 R.c("server/chunks/ssr/node_modules_0ev7kv1._.js")
-R.c("server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0n9zodp.js")
+R.c("server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_1jhf9gw.js")
 R.c("server/chunks/ssr/[root-of-the-server]__09nrbra._.js")
 R.c("server/chunks/ssr/[root-of-the-server]__1vfpvus._.js")
 R.c("server/chunks/ssr/app_layout_tsx_2144vk_._.js")
@@ -9,6 +9,7 @@ R.c("server/chunks/ssr/node_modules_next_dist_client_components_0wpq8j3._.js")
 R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_forbidden_0symwr9.js")
 R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_unauthorized_0l_sp0x.js")
 R.c("server/chunks/ssr/node_modules_next_dist_client_components_builtin_global-error_0-o-goa.js")
+R.c("server/chunks/ssr/_1y4ywsn._.js")
 R.c("server/chunks/ssr/_next-internal_server_app_dashboard_groomers_[id]_schedule_page_actions_1di9lh2.js")
-R.m(60172)
-module.exports=R.m(60172).exports
+R.m(95058)
+module.exports=R.m(95058).exports
