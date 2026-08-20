@@ -33,6 +33,7 @@ const NAV_SECTIONS = [
     items: [
       { href: "/dashboard/services", label: "Services & pricing", Icon: ScissorsIcon },
       { href: "/dashboard/groomers", label: "Groomers", Icon: UsersIcon },
+      { href: "/dashboard/clients", label: "Clients", Icon: UsersIcon },
       { href: "/dashboard/hours", label: "Opening hours", Icon: ClockIcon },
       { href: "/dashboard/branding", label: "Branding", Icon: PaletteIcon },
     ],

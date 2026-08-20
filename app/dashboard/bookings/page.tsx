@@ -10,11 +10,12 @@ type Booking = {
   ends_at: string;
   price: number;
   status: string;
+  paid: boolean;
   groomer_id: string | null;
   service: { name: string } | null;
   groomer: { name: string } | null;
   client: { name: string; phone: string | null } | null;
-  dog: { name: string } | null;
+  dog: { name: string; species: string; photo_url: string | null; breed: string | null } | null;
 };
 
 export default function BookingsListPage() {
@@ -53,7 +54,7 @@ export default function BookingsListPage() {
     let query = supabase
       .from("booking")
       .select(
-        "id, starts_at, ends_at, price, status, groomer_id, service:service_id(name), groomer:groomer_id(name), client:client_id(name, phone), dog:dog_id(name)"
+        "id, starts_at, ends_at, price, status, paid, groomer_id, service:service_id(name), groomer:groomer_id(name), client:client_id(name, phone), dog:dog_id(name, species, photo_url, breed)"
       )
       .eq("parlour_id", staffRow.parlour_id);
 
@@ -87,6 +88,16 @@ export default function BookingsListPage() {
   async function handleCancel(id: string) {
     if (!confirm("Cancel this booking?")) return;
     await supabase.from("booking").update({ status: "cancelled", cancelled_at: new Date().toISOString() }).eq("id", id);
+    loadData();
+  }
+
+  async function handleMarkDone(id: string) {
+    await supabase.from("booking").update({ status: "completed", paid: true }).eq("id", id);
+    loadData();
+  }
+
+  async function handleTogglePaid(id: string, paid: boolean) {
+    await supabase.from("booking").update({ paid: !paid }).eq("id", id);
     loadData();
   }
 
@@ -144,30 +155,63 @@ export default function BookingsListPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
+                    <div className="w-7 h-7 rounded-full bg-[#FAF6EF] border border-black/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {b.dog?.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={b.dog.photo_url} alt={b.dog.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs">{b.dog?.species === "cat" ? "🐱" : "🐾"}</span>
+                      )}
+                    </div>
                     <span className="font-semibold text-[#14261F] text-sm">
-                      {b.service?.name ?? "Service"} — {b.dog?.name ?? "Dog"}
+                      {b.service?.name ?? "Service"} — {b.dog?.name ?? "Pet"}
                     </span>
                     <span
                       className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                        b.status === "confirmed" ? "bg-green-50 text-green-700" : b.status === "cancelled" ? "bg-red-50 text-red-600" : "bg-[#FAF6EF] text-[#14261F]/60"
+                        b.status === "confirmed"
+                          ? "bg-blue-50 text-blue-700"
+                          : b.status === "completed"
+                          ? "bg-green-50 text-green-700"
+                          : b.status === "cancelled"
+                          ? "bg-red-50 text-red-600"
+                          : "bg-[#FAF6EF] text-[#14261F]/60"
                       }`}
                     >
                       {b.status}
                     </span>
+                    {b.status !== "cancelled" && (
+                      <button
+                        onClick={() => handleTogglePaid(b.id, b.paid)}
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                          b.paid ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+                        }`}
+                      >
+                        {b.paid ? "Paid" : "Unpaid"}
+                      </button>
+                    )}
                   </div>
                   <p className="text-xs text-[#14261F]/50">
                     {new Date(b.starts_at).toLocaleString("en-ZA", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false })}
                     {" · "}
                     {b.client?.name ?? "Client"}
                     {b.client?.phone ? ` · ${b.client.phone}` : ""}
+                    {b.dog?.breed ? ` · ${b.dog.breed}` : ""}
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm font-semibold text-[#14261F]">R{Number(b.price).toFixed(2)}</p>
                   {b.status === "confirmed" && (
-                    <button onClick={() => handleCancel(b.id)} className="text-xs text-red-500 hover:underline mt-1">
-                      Cancel
-                    </button>
+                    <div className="flex flex-col items-end gap-1 mt-1">
+                      <button
+                        onClick={() => handleMarkDone(b.id)}
+                        className="text-xs text-green-700 hover:underline font-medium"
+                      >
+                        Mark done &amp; collected
+                      </button>
+                      <button onClick={() => handleCancel(b.id)} className="text-xs text-red-500 hover:underline">
+                        Cancel
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
