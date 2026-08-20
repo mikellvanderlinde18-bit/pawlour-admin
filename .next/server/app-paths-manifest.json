@@ -3,6 +3,7 @@
   "/_not-found/page": "app/_not-found/page.js",
   "/dashboard/bookings/new/page": "app/dashboard/bookings/new/page.js",
   "/dashboard/bookings/page": "app/dashboard/bookings/page.js",
+  "/dashboard/branding/page": "app/dashboard/branding/page.js",
   "/dashboard/groomers/[id]/availability/page": "app/dashboard/groomers/[id]/availability/page.js",
   "/dashboard/groomers/[id]/schedule/page": "app/dashboard/groomers/[id]/schedule/page.js",
   "/dashboard/groomers/page": "app/dashboard/groomers/page.js",

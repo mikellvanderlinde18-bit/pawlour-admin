@@ -71,6 +71,12 @@
       "namedRegex": "^/dashboard/bookings/new(?:/)?$"
     },
     {
+      "page": "/dashboard/branding",
+      "regex": "^/dashboard/branding(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/branding(?:/)?$"
+    },
+    {
       "page": "/dashboard/groomers",
       "regex": "^/dashboard/groomers(?:/)?$",
       "routeKeys": {},

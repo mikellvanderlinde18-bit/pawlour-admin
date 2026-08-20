@@ -225,9 +225,14 @@ export default function ServicesPage() {
                   ))}
                 </div>
               </div>
-              <button onClick={() => handleDeleteService(service.id)} className="text-xs text-red-500 hover:underline">
-                Remove
-              </button>
+              <div className="flex flex-col items-end gap-2">
+                <a href={`/dashboard/services/${service.id}`} className="text-xs text-[#14261F]/60 hover:underline">
+                  Edit →
+                </a>
+                <button onClick={() => handleDeleteService(service.id)} className="text-xs text-red-500 hover:underline">
+                  Remove
+                </button>
+              </div>
             </div>
           ))}
         </div>
