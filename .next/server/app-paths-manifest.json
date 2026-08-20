@@ -12,6 +12,7 @@
   "/dashboard/page": "app/dashboard/page.js",
   "/dashboard/reports/page": "app/dashboard/reports/page.js",
   "/dashboard/rewards/page": "app/dashboard/rewards/page.js",
+  "/dashboard/services/[id]/page": "app/dashboard/services/[id]/page.js",
   "/dashboard/services/page": "app/dashboard/services/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/login/page": "app/login/page.js",

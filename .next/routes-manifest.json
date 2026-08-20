@@ -37,6 +37,14 @@
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/dashboard/groomers/(?<nxtPid>[^/]+?)/schedule(?:/)?$"
+    },
+    {
+      "page": "/dashboard/services/[id]",
+      "regex": "^/dashboard/services/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/services/(?<nxtPid>[^/]+?)(?:/)?$"
     }
   ],
   "staticRoutes": [

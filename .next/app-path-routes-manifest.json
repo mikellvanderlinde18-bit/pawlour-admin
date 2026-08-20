@@ -12,6 +12,7 @@
   "/dashboard/page": "/dashboard",
   "/dashboard/reports/page": "/dashboard/reports",
   "/dashboard/rewards/page": "/dashboard/rewards",
+  "/dashboard/services/[id]/page": "/dashboard/services/[id]",
   "/dashboard/services/page": "/dashboard/services",
   "/favicon.ico/route": "/favicon.ico",
   "/login/page": "/login",
