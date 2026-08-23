@@ -1,204 +1,82 @@
 # Pawlour — Business & Product Decisions Log
 
-A running record of decisions made during the build, so they don't get lost as
-the project grows. Add to this whenever a real business/pricing/product call
-is made — not implementation details, just the decisions and why.
-
----
+Recreated after a sandbox reset wiped the original file. Captures key
+decisions from the full build so far.
 
 ## Company structure
-- **WorkInFlow** is the parent business (a division of CapeX Transport) that builds
-  and sells software products.
-- **Pawlour** is a product of WorkInFlow — booking/CRM software for dog grooming
-  parlours, white-labelled per parlour.
-- Supabase organization: `WorkInFlow`. Project: `Pawlour`.
-
-## Naming
-- Product name: **Pawlour** (domain secured: pawlour.app, via Netlify).
-
-## Multi-tenancy model
-- One client account per parlour (not shared across parlours a client might visit).
-- Billing/tier/status lives on the `parlour` record, not the user — a user (e.g.
-  the business owner) can own multiple parlours without their billing merging.
+- **WorkInFlow** (division of CapeX Transport) builds and sells Pawlour.
+- Multi-tenant: any parlour can self-serve sign up, fully isolated via RLS,
+  independent of who owns WorkInFlow — the system is meant to be sold to
+  unrelated third-party parlours, not just parlours the owner personally runs.
+- Supabase org: WorkInFlow. Project: Pawlour.
 
 ## Pricing tiers (staff logins)
-- **Starter**: 1 staff login
-- **Growth**: 3 staff logins
-- **Pro**: 10 staff logins
-- **Group tier (planned, not yet built)**: triggered once a single owner/user
-  has 3+ parlours. Not a simple discount — a distinct plan aimed at franchise/
-  multi-branch groups, likely offered via direct conversation rather than
-  self-serve. Being considered for this tier:
-  - Cross-parlour reporting (aggregate view across all their locations)
-  - One login, switch between parlours (ties into the "parlour switcher" UI
-    already flagged as a to-do from multi-parlour dashboard testing)
-  - Centralized billing across their parlours
-  - Shared client base across locations — bigger schema decision, only revisit
-    once a real group customer asks for it
+- Starter: 1 login. Growth: 3 logins. Pro: 10 logins.
+- Group tier (planned, not built): 3+ parlours under one owner, cross-parlour
+  reporting, one login switching parlours, centralized billing — offered via
+  direct conversation, not self-serve.
 
-## Billing model
-- 14-day free trial, no card required to unlock go-live.
-- On trial expiry without payment: booking page **auto-pauses**, not deleted —
-  no data loss, no punitive hard cutoff.
-- Growth/Pro tiers include in-app client payments via Paystack (SA-friendly,
-  ZAR native). Starter tier stays pay-in-person only.
-- Parlour's subscription to WorkInFlow (what they pay us) is a separate billing
-  flow from client-to-parlour payments (what their clients pay them) — both can
-  use Paystack, but must not be conflated in the schema.
+## Billing
+- Provider: **Paystack** (SA-friendly, ZAR native). Not yet connected — no
+  API keys provided. Placeholder pricing: Starter R399, Growth R799, Pro
+  R1,499/month.
+- 14-day free trial, **no card required** to go live.
+- On trial expiry with no active subscription: parlour auto-**pauses**
+  (never deletes data). Enforced by a daily `pg_cron` job plus a client-side
+  status check on the booking page.
+- Parlour's subscription to WorkInFlow is a separate concern from a
+  parlour's own clients paying them in-app (also via Paystack, Growth/Pro
+  tiers only) — must not be conflated in the schema.
 
-## Notifications
-- v1 uses in-app notifications only (offers, reward milestones, booking
-  confirmations) inside the client PWA — no WhatsApp/SMS/push infrastructure
-  yet. Revisit WhatsApp integration once real parlours ask for it; likely a
-  Pro-tier upsell later.
+## Booking models
+- **Per-groomer**: client picks a specific groomer (stylist model).
+- **Capacity-based**: client picks no one — books against overall parlour
+  capacity for that service (e.g. "2 wash stations"). Staff assign a
+  groomer afterward from the admin bookings list. Both enforced against
+  double-booking at the database level (exclusion constraint / trigger).
+- Both toggled per-service via "Clients choose which groomer" on the
+  Services page — editable after creation, not just at creation time.
 
-## Client onboarding & dog profiles
-- **Done**: first-time welcome flow (`/book/[slug]/welcome`) — warm greeting,
-  account creation, then a guided multi-step dog profile setup (basics,
-  look & style, personality tags, health & care, favorites/quirks). All
-  fields collected up front in one guided flow, not left for later.
-- Only the dog's name is actually required. Every step past that has a
-  "Skip the rest — just book me in" option, so a client who just wants to
-  book a quick cut isn't forced through the full profile. Rich profile
-  fields (breed, personality, health, favorites) remain genuinely optional
-  and can, in principle, be filled in later — though there's currently no
-  edit UI for updating a dog's profile after creation; that's a real gap
-  worth closing (a client can create a dog once during welcome, but can't
-  yet go back and add the details they skipped).
-- **Done**: `/book/[slug]/dogs/[id]` — a single shared page handles both
-  creating a new dog (`id = 'new'`) and editing an existing one (any real
-  dog id), using the exact same field set as the welcome flow, plus a
-  delete option in edit mode. Reachable from the Account tab: each dog card
-  is now clickable to edit, and an "+ Add another dog" link creates
-  additional dogs — closes both the "can't complete a skipped profile
-  later" gap and multi-dog support in one page.
-- Logged-in clients with no client record or zero dogs are auto-redirected
-  here from the main booking page — a new client can't reach the booking
-  flow without a dog profile existing first.
-- `dog` table expanded: birthday, gender, coat_color, personality_tags
-  (text array, picked from a fixed fun tag list — "Cuddle bug", "Zoomies
-  champion", etc.), about (free text), favorite_treat, favorite_toy,
-  dislikes, vet_name, vet_phone, vaccinated, vaccination_expiry,
-  medications — on top of the original breed/size/coat_type/cut_style/
-  special_requests/health_notes.
-- Not yet built: photo upload for dog profiles (currently no field is
-  populated for this in the welcome flow — photo_url column exists but is
-  unused until Supabase Storage is wired up).
-- **Done**: dog photo upload. Public Supabase Storage bucket `dog-photos`,
-  RLS scoped so a user can only write inside a folder named after their own
-  auth uid (`dog-photos/{uid}/...`) — prevents clients overwriting each
-  other's files. Photo shows on the welcome flow avatar and the account
-  page's dog cards.
-- **Bug found & fixed**: the `client` table had policies for staff
-  management and for a client viewing/updating their *own* existing record,
-  but no INSERT policy for a brand-new user creating their own client record
-  in the first place — self-signup was silently broken until this was
-  added. Worth double-checking any new self-service table follows the same
-  pattern: staff ALL, client SELECT/UPDATE own, AND client INSERT own.
+## Rewards ("stamps")
+- Configurable per parlour (visit count or spend threshold; free service,
+  %, or fixed discount). A stamp is earned only when a booking transitions
+  to **status = 'completed'** (parlour marks it done & the client has
+  paid) — not at booking time. Client sees a real stamp-card visual.
 
-- **Done**: real "Forgot password?" flow — `/forgot-password` (request a
-  reset email via Supabase's built-in `resetPasswordForEmail`) and
-  `/reset-password` (set a new password after clicking the emailed link,
-  which establishes a temporary recovery session automatically). Linked
-  from both login points (welcome flow and the inline auth step in the main
-  booking page). Closes the previous real gap where a forgotten password
-  could only be fixed by manually updating the database.
+## Pets, not just dogs
+- `dog` table (name kept for historical reasons) has a `species` field
+  (dog/cat/other) — every pet-facing form and label should not assume dogs
+  only.
+- Rich pet profile: breed, size, coat, personality tags, health/vet info,
+  favorites/quirks, photo upload (Supabase Storage, scoped per user folder).
+  Only the pet's name is required — everything else is skippable, with a
+  "just book me in" shortcut at every step.
 
-## Rewards
-- Fully configurable per parlour (trigger type: visit count or spend total;
-  threshold; reward type). No hardcoded "10th cut free" — that's just the
-  sensible default shown during onboarding.
-- Rewards do not expire by default (v1). Revisit only if a parlour requests it.
-- **Done**: `reward_ledger` auto-updates via a database trigger on every
-  confirmed booking, regardless of which app created it (admin or client).
-  Resets the counter once a reward is earned. No admin UI to configure a
-  parlour's reward rule yet — created directly in the database for testing;
-  still a to-build screen.
-- Client account dashboard (`/book/[slug]/account`) shows upcoming bookings,
-  dogs, and live rewards progress — the client's home base after their first
-  booking.
+## Client app navigation
+- Mobile-first. Uses a slide-out drawer (hamburger button, not a persistent
+  sidebar) — "Book", "Offers", "My profile" (renamed from "Account").
 
-## Onboarding
-- Self-serve, 7-step guided wizard (business basics → tier → groomers →
-  availability → pricing → rewards → go live).
-- No manual approval step for parlours going live — a parlour can complete
-  the wizard and start taking bookings immediately, trial clock included.
+## Admin app navigation
+- Persistent left sidebar (desktop-oriented, unlike the client app), grouped
+  into Bookings / Setup / Grow sections. Overview page shows live stats
+  (today's bookings, next 7 days, plan) instead of a plain link list.
 
-## Open / not yet decided
-- Offer redemption tracking (which client used which offer) — deferred, v2.
-- Exact discount/feature list for Group tier — deferred until a real
-  multi-parlour customer is being onboarded.
+## Design direction
+- "Premium and minimal": near-white background (#FAFAF8), charcoal text
+  (#1A1A1A), small uppercase eyebrow labels, hairline (0.5px) dividers
+  between list items instead of separate bordered cards, restrained motion.
+- Branding: each parlour sets a logo + two brand colors (primary/accent) via
+  `/dashboard/branding`, applied dynamically on the client app via inline
+  styles reading from Supabase — real per-parlour white-labelling.
 
-## Technical gotchas worth remembering
-- Next.js's default globals.css includes a `prefers-color-scheme: dark` block
-  that flips text color to light gray on a macOS dark-mode browser. Since
-  Pawlour doesn't have a designed dark mode, this was removed — all forms
-  force explicit text color instead of inheriting. Watch for this if any new
-  page is scaffolded and reuses default Next.js styles.
-
-## Admin bookings
-- **Done**: `/dashboard/bookings` is now a real list — filterable
-  (upcoming/past/all), shows client, dog, service, groomer, price, status.
-  Staff can cancel a confirmed booking directly. The old "create a booking"
-  form moved to `/dashboard/bookings/new` (unchanged functionality).
-- **Done**: closes the "no admin UI to assign a groomer" gap flagged
-  earlier for capacity-based bookings — any booking with no groomer
-  assigned shows a dropdown right on the list to assign one after the fact.
-
-## Admin rewards & offers (closes the "SQL-only" gap)
-- **Done**: `/dashboard/rewards` — a real setup screen for the loyalty
-  programme (visit count or spend threshold, reward type, on/off toggle).
-  No longer needs manual SQL to configure per parlour.
-- **Done**: `/dashboard/offers` — create/list/remove offers, with an
-  audience selector (all / lapsed / loyal). Note: audience is currently
-  just stored, not yet used to actually filter which clients see an offer
-  in the client app's Offers tab — every client sees every offer regardless
-  of audience. Real segmented delivery is a v2 item.
-
-## Reporting
-- **Done**: `/dashboard/reports` — basic dashboard scoped to last 30 days:
-  revenue, booking count, cancellation rate, total clients, top 5 services,
-  top 5 groomers by booking count. Matches the "basic v1" scope decided
-  early on — no cross-location or commission breakdowns yet (that's a
-  Group-tier item per the pricing decisions above).
-
-## Availability model
-- Weekly template (on `groomer.weekly_hours`) covers the common case: regular,
-  recurring hours. Not every groomer works fixed hours though — real parlours
-  have casual/rotating staff, sick days, and one-off extra shifts.
-- `groomer_schedule_override` table adds date-specific exceptions on top of
-  the template: `is_available = true` adds an extra shift on a day they
-  wouldn't normally work, `is_available = false` blocks a day they normally
-  would. A groomer can have an empty weekly template and rely entirely on
-  overrides for fully casual scheduling.
-- Final availability for booking = weekly template for that weekday, with any
-  matching date override applied on top. Not yet built: the actual booking
-  engine that combines these two into real bookable slots — that's next.
-- **Done**: `get_available_slots(groomer_id, date, duration_minutes)` Postgres
-  function computes real bookable slots server-side, combining weekly
-  template + overrides + subtracting existing confirmed bookings. Both the
-  admin calendar and the client booking app should call this same function
-  (via Supabase RPC) rather than each re-implementing the logic — this is the
-  single source of truth for "what's actually available."
-- SECURITY DEFINER note: `get_available_slots` had to be marked SECURITY
-  DEFINER — anonymous/public users can't read the `booking` table directly
-  under RLS, so without this the conflict check would silently see zero
-  bookings and allow double-booking. The function only ever returns time
-  slots, never row data, so this is safe.
-
-## Two booking models (added after feedback: not every parlour has clients
-## pick a specific stylist — many run more like a production line)
-- **Per-groomer** (`service.requires_groomer_selection = true`, default):
-  client picks a specific groomer, availability = that groomer's weekly
-  hours + overrides, via `get_available_slots`.
-- **Capacity-based** (`requires_groomer_selection = false`): client doesn't
-  pick anyone — booking is against the parlour's overall capacity for that
-  service (`service.concurrent_capacity`, e.g. "2 wash stations"), checked
-  against `parlour.weekly_hours` (parlour-wide operating hours, separate
-  from any individual groomer's hours) via `get_capacity_slots`. Booking's
-  `groomer_id` is nullable in this mode — staff assign internally later
-  (no admin UI for that assignment yet — noted gap).
-- Both models are enforced at the database level against double-booking:
-  an exclusion constraint for per-groomer, a BEFORE INSERT/UPDATE trigger
-  checking overlap count against capacity for the capacity model. Neither
-  relies solely on the app-level slot check before insert.
+## Known gaps (as of this entry)
+- GitHub → Netlify auto-deploy not confirmed reliable; manual `netlify
+  deploy --prod` used throughout.
+- No parlour switcher for users who belong to multiple parlours.
+- No staff invite flow (only the original signup owner can log in).
+- No custom domain support.
+- Offer audience targeting (all/lapsed/loyal) is stored but not enforced.
+- No client self-service cancel/reschedule.
+- No notifications (booking reminders, reward-ready alerts).
+- Paystack webhook receiver and live checkout flow not built (blocked on
+  real API keys).

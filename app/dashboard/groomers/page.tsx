@@ -234,9 +234,9 @@ export default function GroomersPage() {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <button onClick={() => handleDeleteGroomer(groomer.id)} className="text-xs text-red-500 hover:underline">
-                  Remove
-                </button>
+                <a href={`/dashboard/groomers/${groomer.id}/edit`} className="text-xs text-[#14261F]/60 hover:underline font-medium">
+                  Edit →
+                </a>
                 <a href={`/dashboard/groomers/${groomer.id}/schedule`} className="text-xs text-[#14261F]/60 hover:underline">
                   Schedule exceptions →
                 </a>

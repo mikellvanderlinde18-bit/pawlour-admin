@@ -4,6 +4,7 @@
   "/dashboard/bookings/new/page": "/dashboard/bookings/new",
   "/dashboard/bookings/page": "/dashboard/bookings",
   "/dashboard/branding/page": "/dashboard/branding",
+  "/dashboard/clients/page": "/dashboard/clients",
   "/dashboard/groomers/[id]/availability/page": "/dashboard/groomers/[id]/availability",
   "/dashboard/groomers/[id]/schedule/page": "/dashboard/groomers/[id]/schedule",
   "/dashboard/groomers/page": "/dashboard/groomers",

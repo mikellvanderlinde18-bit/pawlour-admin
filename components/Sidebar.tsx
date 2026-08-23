@@ -14,6 +14,7 @@ import {
   TagIcon,
   ChartIcon,
   PaletteIcon,
+  CreditCardIcon,
   LogOutIcon,
 } from "./icons";
 
@@ -36,6 +37,7 @@ const NAV_SECTIONS = [
       { href: "/dashboard/clients", label: "Clients", Icon: UsersIcon },
       { href: "/dashboard/hours", label: "Opening hours", Icon: ClockIcon },
       { href: "/dashboard/branding", label: "Branding", Icon: PaletteIcon },
+      { href: "/dashboard/billing", label: "Billing", Icon: CreditCardIcon },
     ],
   },
   {
