@@ -1,11 +1,13 @@
 {
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/dashboard/billing/page": "app/dashboard/billing/page.js",
   "/dashboard/bookings/new/page": "app/dashboard/bookings/new/page.js",
   "/dashboard/bookings/page": "app/dashboard/bookings/page.js",
   "/dashboard/branding/page": "app/dashboard/branding/page.js",
   "/dashboard/clients/page": "app/dashboard/clients/page.js",
   "/dashboard/groomers/[id]/availability/page": "app/dashboard/groomers/[id]/availability/page.js",
+  "/dashboard/groomers/[id]/edit/page": "app/dashboard/groomers/[id]/edit/page.js",
   "/dashboard/groomers/[id]/schedule/page": "app/dashboard/groomers/[id]/schedule/page.js",
   "/dashboard/groomers/page": "app/dashboard/groomers/page.js",
   "/dashboard/hours/page": "app/dashboard/hours/page.js",

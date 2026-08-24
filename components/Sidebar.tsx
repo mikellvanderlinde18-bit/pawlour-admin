@@ -37,6 +37,7 @@ const NAV_SECTIONS = [
       { href: "/dashboard/clients", label: "Clients", Icon: UsersIcon },
       { href: "/dashboard/hours", label: "Opening hours", Icon: ClockIcon },
       { href: "/dashboard/branding", label: "Branding", Icon: PaletteIcon },
+      { href: "/dashboard/payment-setup", label: "Payment setup", Icon: CreditCardIcon },
       { href: "/dashboard/billing", label: "Billing", Icon: CreditCardIcon },
     ],
   },

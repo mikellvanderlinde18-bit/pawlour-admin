@@ -69,6 +69,32 @@ decisions from the full build so far.
   `/dashboard/branding`, applied dynamically on the client app via inline
   styles reading from Supabase — real per-parlour white-labelling.
 
+## Client-to-parlour payments (separate from WorkInFlow subscription billing)
+- **Done**: each parlour connects their OWN Paystack account (public + secret
+  key) via `/dashboard/payment-setup` in admin. WorkInFlow takes no cut —
+  money goes straight to the parlour. Secret key protected by RLS (only that
+  parlour's staff can read/write it) and never sent to the client app —
+  only a public-safe view (`parlour_payment_public`) exposing the public
+  key is readable by clients.
+- **Done**: two Supabase Edge Functions handle the privileged parts
+  server-side using the service role key (never exposed): `verify-payment`
+  (confirms a Paystack charge succeeded and matches the booking price, then
+  marks it paid) and `refund-payment` (staff-only, checks the caller is
+  actually staff of that parlour before refunding via Paystack).
+- **Done**: client booking flow — if a parlour has payments enabled, client
+  sees "Pay now" / "Pay at the parlour" at confirm. "Pay now" creates the
+  booking first (holding the slot), launches Paystack Inline.js, and calls
+  `verify-payment` on success before showing confirmation.
+- **Refund policy**: no automatic refunds — parlour must manually click
+  "Refund via Paystack" on a cancelled, paid-in-app booking.
+- **Done**: client self-cancel respecting a per-parlour
+  `cancellation_cutoff_hours` setting (Opening Hours page). Inside the
+  cutoff, client is told to contact the parlour directly. "Reschedule" is
+  currently just a link to book a new time, not a true same-booking move.
+- Real end-to-end testing (an actual successful charge) is blocked until a
+  parlour connects real Paystack test/live keys — the whole flow is
+  code-complete and deployed but unverified against a live payment.
+
 ## Known gaps (as of this entry)
 - GitHub → Netlify auto-deploy not confirmed reliable; manual `netlify
   deploy --prod` used throughout.
@@ -76,7 +102,7 @@ decisions from the full build so far.
 - No staff invite flow (only the original signup owner can log in).
 - No custom domain support.
 - Offer audience targeting (all/lapsed/loyal) is stored but not enforced.
-- No client self-service cancel/reschedule.
 - No notifications (booking reminders, reward-ready alerts).
-- Paystack webhook receiver and live checkout flow not built (blocked on
-  real API keys).
+- WorkInFlow's own subscription billing (parlour → WorkInFlow) still needs
+  the actual Paystack checkout + webhook wired up — same real-keys blocker
+  as client payments above, tracked separately in the Billing section.

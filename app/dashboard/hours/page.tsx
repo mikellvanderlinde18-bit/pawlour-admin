@@ -24,6 +24,7 @@ export default function ParlourHoursPage() {
 
   const [activeDays, setActiveDays] = useState<Record<string, boolean>>({});
   const [dayTimes, setDayTimes] = useState<Record<string, [string, string]>>({});
+  const [cutoffHours, setCutoffHours] = useState(24);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -38,7 +39,7 @@ export default function ParlourHoursPage() {
 
     const { data: staffRow } = await supabase
       .from("parlour_staff")
-      .select("parlour_id, parlour:parlour_id(weekly_hours)")
+      .select("parlour_id, parlour:parlour_id(weekly_hours, cancellation_cutoff_hours)")
       .eq("auth_user_id", user.id)
       .limit(1)
       .maybeSingle();
@@ -51,7 +52,10 @@ export default function ParlourHoursPage() {
     setParlourId(staffRow.parlour_id);
 
     const hours =
-      (staffRow.parlour as unknown as { weekly_hours: Record<string, [string, string]> } | null)?.weekly_hours ?? {};
+      (staffRow.parlour as unknown as { weekly_hours: Record<string, [string, string]>; cancellation_cutoff_hours: number } | null)?.weekly_hours ?? {};
+    setCutoffHours(
+      (staffRow.parlour as unknown as { cancellation_cutoff_hours: number } | null)?.cancellation_cutoff_hours ?? 24
+    );
 
     const active: Record<string, boolean> = {};
     const times: Record<string, [string, string]> = {};
@@ -97,7 +101,10 @@ export default function ParlourHoursPage() {
       }
     }
 
-    const { error: updateError } = await supabase.from("parlour").update({ weekly_hours: weeklyHours }).eq("id", parlourId);
+    const { error: updateError } = await supabase
+      .from("parlour")
+      .update({ weekly_hours: weeklyHours, cancellation_cutoff_hours: cutoffHours })
+      .eq("id", parlourId);
 
     setSaving(false);
 
@@ -161,6 +168,26 @@ export default function ParlourHoursPage() {
               )}
             </div>
           ))}
+
+          <div className="border-t border-black/10 pt-4 mt-2">
+            <label className="block text-sm font-medium text-[#14261F] mb-1">
+              Cancellation cutoff
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                value={cutoffHours}
+                onChange={(e) => setCutoffHours(parseInt(e.target.value) || 0)}
+                className="w-20 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
+              />
+              <span className="text-sm text-[#14261F]/60">hours before a booking</span>
+            </div>
+            <p className="text-xs text-[#14261F]/50 mt-1">
+              Clients can cancel or reschedule themselves up until this many hours before their
+              appointment. After that, they&apos;ll need to contact you directly.
+            </p>
+          </div>
 
           <button
             onClick={handleSave}

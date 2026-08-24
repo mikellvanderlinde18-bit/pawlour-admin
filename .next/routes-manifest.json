@@ -31,6 +31,14 @@
       "namedRegex": "^/dashboard/groomers/(?<nxtPid>[^/]+?)/availability(?:/)?$"
     },
     {
+      "page": "/dashboard/groomers/[id]/edit",
+      "regex": "^/dashboard/groomers/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/groomers/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
       "page": "/dashboard/groomers/[id]/schedule",
       "regex": "^/dashboard/groomers/([^/]+?)/schedule(?:/)?$",
       "routeKeys": {
@@ -65,6 +73,12 @@
       "regex": "^/dashboard(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
+      "page": "/dashboard/billing",
+      "regex": "^/dashboard/billing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/billing(?:/)?$"
     },
     {
       "page": "/dashboard/bookings",

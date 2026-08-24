@@ -11,6 +11,8 @@ type Booking = {
   price: number;
   status: string;
   paid: boolean;
+  payment_reference: string | null;
+  refund_status: string;
   groomer_id: string | null;
   service: { name: string } | null;
   groomer: { name: string } | null;
@@ -27,6 +29,7 @@ export default function BookingsListPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"upcoming" | "past" | "all">("upcoming");
   const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -54,7 +57,7 @@ export default function BookingsListPage() {
     let query = supabase
       .from("booking")
       .select(
-        "id, starts_at, ends_at, price, status, paid, groomer_id, service:service_id(name), groomer:groomer_id(name), client:client_id(name, phone), dog:dog_id(name, species, photo_url, breed)"
+        "id, starts_at, ends_at, price, status, paid, payment_reference, refund_status, groomer_id, service:service_id(name), groomer:groomer_id(name), client:client_id(name, phone), dog:dog_id(name, species, photo_url, breed)"
       )
       .eq("parlour_id", staffRow.parlour_id);
 
@@ -98,6 +101,45 @@ export default function BookingsListPage() {
 
   async function handleTogglePaid(id: string, paid: boolean) {
     await supabase.from("booking").update({ paid: !paid }).eq("id", id);
+    loadData();
+  }
+
+  async function handleRefund(booking: Booking) {
+    if (!confirm(`Refund R${Number(booking.price).toFixed(2)} to this client via Paystack? This can't be undone.`)) return;
+
+    setRefundingId(booking.id);
+    setError(null);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setError("Session expired — please log in again.");
+      setRefundingId(null);
+      return;
+    }
+
+    const res = await fetch(
+      `https://vdktciebkfyjtanyzdfu.supabase.co/functions/v1/refund-payment`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ booking_id: booking.id }),
+      }
+    );
+
+    const result = await res.json();
+    setRefundingId(null);
+
+    if (!res.ok) {
+      setError(result.error ?? "Refund failed.");
+      return;
+    }
+
     loadData();
   }
 
@@ -212,6 +254,18 @@ export default function BookingsListPage() {
                         Cancel
                       </button>
                     </div>
+                  )}
+                  {b.status === "cancelled" && b.paid && b.payment_reference && b.refund_status !== "refunded" && (
+                    <button
+                      onClick={() => handleRefund(b)}
+                      disabled={refundingId === b.id}
+                      className="text-xs text-amber-700 hover:underline font-medium mt-1 disabled:opacity-50"
+                    >
+                      {refundingId === b.id ? "Refunding…" : "Refund via Paystack"}
+                    </button>
+                  )}
+                  {b.refund_status === "refunded" && (
+                    <p className="text-xs text-[#14261F]/40 mt-1">Refunded</p>
                   )}
                 </div>
               </div>
