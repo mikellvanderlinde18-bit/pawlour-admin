@@ -13,6 +13,7 @@
   "/dashboard/hours/page": "app/dashboard/hours/page.js",
   "/dashboard/offers/page": "app/dashboard/offers/page.js",
   "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/payment-setup/page": "app/dashboard/payment-setup/page.js",
   "/dashboard/reports/page": "app/dashboard/reports/page.js",
   "/dashboard/rewards/page": "app/dashboard/rewards/page.js",
   "/dashboard/services/[id]/page": "app/dashboard/services/[id]/page.js",

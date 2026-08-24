@@ -123,6 +123,12 @@
       "namedRegex": "^/dashboard/offers(?:/)?$"
     },
     {
+      "page": "/dashboard/payment-setup",
+      "regex": "^/dashboard/payment\\-setup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/payment\\-setup(?:/)?$"
+    },
+    {
       "page": "/dashboard/reports",
       "regex": "^/dashboard/reports(?:/)?$",
       "routeKeys": {},

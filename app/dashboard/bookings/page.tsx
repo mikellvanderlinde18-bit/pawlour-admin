@@ -10,14 +10,17 @@ type Booking = {
   ends_at: string;
   price: number;
   status: string;
+  appointment_status: string;
+  groomer_notes: string | null;
   paid: boolean;
+  tip_amount: number;
   payment_reference: string | null;
   refund_status: string;
   groomer_id: string | null;
   service: { name: string } | null;
   groomer: { name: string } | null;
   client: { name: string; phone: string | null } | null;
-  dog: { name: string; species: string; photo_url: string | null; breed: string | null } | null;
+  dog: { name: string; species: string; photo_url: string | null; breed: string | null; care_flags: string[] } | null;
 };
 
 export default function BookingsListPage() {
@@ -30,6 +33,7 @@ export default function BookingsListPage() {
   const [filter, setFilter] = useState<"upcoming" | "past" | "all">("upcoming");
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [notesDraft, setNotesDraft] = useState<Record<string, string>>({});
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -57,7 +61,7 @@ export default function BookingsListPage() {
     let query = supabase
       .from("booking")
       .select(
-        "id, starts_at, ends_at, price, status, paid, payment_reference, refund_status, groomer_id, service:service_id(name), groomer:groomer_id(name), client:client_id(name, phone), dog:dog_id(name, species, photo_url, breed)"
+        "id, starts_at, ends_at, price, status, appointment_status, groomer_notes, paid, tip_amount, payment_reference, refund_status, groomer_id, service:service_id(name), groomer:groomer_id(name), client:client_id(name, phone), dog:dog_id(name, species, photo_url, breed, care_flags)"
       )
       .eq("parlour_id", staffRow.parlour_id);
 
@@ -101,6 +105,16 @@ export default function BookingsListPage() {
 
   async function handleTogglePaid(id: string, paid: boolean) {
     await supabase.from("booking").update({ paid: !paid }).eq("id", id);
+    loadData();
+  }
+
+  async function handleStatusChange(id: string, status: string) {
+    await supabase.from("booking").update({ appointment_status: status }).eq("id", id);
+    loadData();
+  }
+
+  async function handleSaveNotes(id: string, notes: string) {
+    await supabase.from("booking").update({ groomer_notes: notes }).eq("id", id);
     loadData();
   }
 
@@ -239,9 +253,21 @@ export default function BookingsListPage() {
                     {b.client?.phone ? ` · ${b.client.phone}` : ""}
                     {b.dog?.breed ? ` · ${b.dog.breed}` : ""}
                   </p>
+                  {b.dog?.care_flags && b.dog.care_flags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {b.dog.care_flags.map((flag) => (
+                        <span key={flag} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                          ⚠ {flag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-sm font-semibold text-[#14261F]">R{Number(b.price).toFixed(2)}</p>
+                  {b.tip_amount > 0 && (
+                    <p className="text-[10px] text-[#14261F]/40">+R{Number(b.tip_amount).toFixed(2)} tip</p>
+                  )}
                   {b.status === "confirmed" && (
                     <div className="flex flex-col items-end gap-1 mt-1">
                       <button
@@ -290,6 +316,47 @@ export default function BookingsListPage() {
                   </select>
                 )}
               </div>
+
+              {b.status === "confirmed" && (
+                <div className="mt-3 pt-3 border-t border-black/10">
+                  <span className="text-xs text-[#14261F]/50 block mb-1.5">Live status (client sees this):</span>
+                  <select
+                    value={b.appointment_status}
+                    onChange={(e) => handleStatusChange(b.id, e.target.value)}
+                    className="text-xs rounded-lg border border-black/15 px-2 py-1 text-[#14261F]"
+                  >
+                    <option value="not_started">Not started</option>
+                    <option value="checked_in">Checked in</option>
+                    <option value="in_progress">In the bath / being groomed</option>
+                    <option value="drying">Drying</option>
+                    <option value="ready_for_pickup">Ready for pickup</option>
+                    <option value="collected">Collected</option>
+                  </select>
+                </div>
+              )}
+
+              {(b.status === "confirmed" || b.status === "completed") && (
+                <div className="mt-3 pt-3 border-t border-black/10">
+                  <span className="text-xs text-[#14261F]/50 block mb-1.5">
+                    Groomer notes (client sees this in their history):
+                  </span>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={notesDraft[b.id] ?? b.groomer_notes ?? ""}
+                      onChange={(e) => setNotesDraft((prev) => ({ ...prev, [b.id]: e.target.value }))}
+                      placeholder="e.g. Found a small mat behind the ear, keep an eye on it"
+                      className="flex-1 text-xs rounded-lg border border-black/15 px-2 py-1.5 text-[#14261F]"
+                    />
+                    <button
+                      onClick={() => handleSaveNotes(b.id, notesDraft[b.id] ?? b.groomer_notes ?? "")}
+                      className="text-xs bg-[#14261F] text-[#FAF6EF] rounded-lg px-3"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

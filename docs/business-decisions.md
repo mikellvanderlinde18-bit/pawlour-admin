@@ -106,3 +106,26 @@ decisions from the full build so far.
 - WorkInFlow's own subscription billing (parlour → WorkInFlow) still needs
   the actual Paystack checkout + webhook wired up — same real-keys blocker
   as client payments above, tracked separately in the Billing section.
+
+## Appointment experience upgrade
+- **Done**: care/behavioral flags on the pet profile (`dog.care_flags`),
+  separate from the fun personality tags — operational/safety info like
+  "Muzzle needed" or "Senior — go gentle". Shown prominently (amber badges)
+  on the admin bookings list so any groomer sees it before starting.
+- **Done**: live appointment status (`booking.appointment_status`) — admin
+  sets it via a dropdown (Checked in → In progress → Drying → Ready for
+  pickup → Collected), client sees it update in real time via a Supabase
+  Realtime subscription on the `booking` table (no refresh needed).
+- **Done**: groomer notes per visit, editable by staff, shown to the client
+  on their booking history.
+- **Done**: tipping — 0/10/15/20% quick-select shown only for in-app
+  payment, added to the Paystack charge total and stored separately
+  (`booking.tip_amount`) from the service price. The `verify-payment` edge
+  function was updated to check the paid amount against price + tip, not
+  just price, since a mismatch there would have silently broken every
+  tipped payment.
+- **Deferred** (each is its own substantial build): full grooming photo
+  history, reviews, package/membership pricing (prepaid credit bundles —
+  a different concept from rewards), saved payment methods (needs
+  Paystack's card tokenization), push notifications (needs web push
+  infrastructure).

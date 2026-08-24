@@ -13,6 +13,7 @@
   "/dashboard/hours/page": "/dashboard/hours",
   "/dashboard/offers/page": "/dashboard/offers",
   "/dashboard/page": "/dashboard",
+  "/dashboard/payment-setup/page": "/dashboard/payment-setup",
   "/dashboard/reports/page": "/dashboard/reports",
   "/dashboard/rewards/page": "/dashboard/rewards",
   "/dashboard/services/[id]/page": "/dashboard/services/[id]",
