@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { TIER_FEATURES, type Tier } from "@/lib/tierFeatures";
+import UpgradeGate from "@/components/UpgradeGate";
 
 type RewardRule = {
   id: string;
@@ -16,6 +18,7 @@ export default function RewardsPage() {
   const supabase = createClient();
 
   const [parlourId, setParlourId] = useState<string | null>(null);
+  const [tier, setTier] = useState<Tier>("starter");
   const [existingRule, setExistingRule] = useState<RewardRule | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -39,13 +42,14 @@ export default function RewardsPage() {
       return;
     }
 
-    const { data: staffRow } = await supabase.from("parlour_staff").select("parlour_id").eq("auth_user_id", user.id).limit(1).maybeSingle();
+    const { data: staffRow } = await supabase.from("parlour_staff").select("parlour_id, parlour:parlour_id(tier)").eq("auth_user_id", user.id).limit(1).maybeSingle();
 
     if (!staffRow) {
       setLoading(false);
       return;
     }
     setParlourId(staffRow.parlour_id);
+    setTier(((staffRow.parlour as unknown as { tier: Tier } | null)?.tier) ?? "starter");
 
     const { data: ruleRow } = await supabase
       .from("reward_rule")
@@ -102,6 +106,14 @@ export default function RewardsPage() {
     return (
       <div className="min-h-screen bg-[#FAF6EF] px-6 py-10 flex items-center justify-center">
         <p className="text-sm text-[#14261F]/50">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!TIER_FEATURES[tier].rewards) {
+    return (
+      <div className="min-h-screen bg-[#FAF6EF] px-6 py-10 flex items-center justify-center">
+        <UpgradeGate feature="Rewards" currentTier={tier} requiredTier="growth" />
       </div>
     );
   }

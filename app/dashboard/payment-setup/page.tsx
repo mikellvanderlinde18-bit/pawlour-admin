@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { TIER_FEATURES, type Tier } from "@/lib/tierFeatures";
+import UpgradeGate from "@/components/UpgradeGate";
 
 type Provider = "paystack" | "yoco" | "payfast";
 
@@ -9,6 +11,7 @@ export default function PaymentSetupPage() {
   const supabase = createClient();
 
   const [parlourId, setParlourId] = useState<string | null>(null);
+  const [tier, setTier] = useState<Tier>("starter");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +43,7 @@ export default function PaymentSetupPage() {
 
     const { data: staffRow } = await supabase
       .from("parlour_staff")
-      .select("parlour_id")
+      .select("parlour_id, parlour:parlour_id(tier)")
       .eq("auth_user_id", user.id)
       .limit(1)
       .maybeSingle();
@@ -50,6 +53,7 @@ export default function PaymentSetupPage() {
       return;
     }
     setParlourId(staffRow.parlour_id);
+    setTier(((staffRow.parlour as unknown as { tier: Tier } | null)?.tier) ?? "starter");
 
     const { data: paymentRow } = await supabase
       .from("parlour_payment")
@@ -129,6 +133,14 @@ export default function PaymentSetupPage() {
     return (
       <div className="px-8 py-8">
         <p className="text-sm text-[#14261F]/50">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!TIER_FEATURES[tier].inAppPayments) {
+    return (
+      <div className="px-8 py-8 flex justify-center">
+        <UpgradeGate feature="In-app client payments" currentTier={tier} requiredTier="growth" />
       </div>
     );
   }

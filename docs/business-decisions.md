@@ -244,3 +244,30 @@ decisions from the full build so far.
   since every service now has it false, that code path is simply dead
   (never triggered), not broken. Removing it entirely would be a larger,
   purely cosmetic cleanup with no functional benefit right now.
+
+## Tier gating (finally enforced, not just advertised)
+- **Done**: `lib/tierFeatures.ts` (admin) defines the actual feature matrix
+  per tier — Starter has no in-app payments, no rewards, no offers, a
+  100-client cap, and shows a "Powered by Pawlour" badge; Growth unlocks
+  payments/rewards/offers and removes the cap and badge; Pro adds advanced
+  reporting (not yet built — currently identical to Growth's reports, flagged
+  as a real gap below).
+- **Done**: Rewards, Offers, and Payment Setup admin pages now check the
+  parlour's tier and show a genuine "upgrade to unlock this" screen
+  (`UpgradeGate` component) instead of the feature, if the parlour is on
+  Starter.
+- **Done, and enforced at the database level, not just hidden in the
+  admin UI**: the 100-client cap on Starter is a real trigger on the
+  `client` table — blocks the insert regardless of which app or flow tries
+  to create client #101. The `parlour_payment_public` view was also updated
+  to exclude Starter-tier parlours entirely, so even a parlour that had
+  payments configured on a higher tier and then downgraded can't have
+  their client app silently keep offering in-app payment.
+- **Done**: the client app's shared `useParlourBrand` hook now also
+  returns the parlour's tier, and the drawer nav shows a small "Powered by
+  Pawlour" badge for Starter-tier parlours only.
+- **Real gap, not yet built**: Pro's "advanced reporting" (trends over
+  time, revenue by groomer breakdown, CSV export) doesn't actually exist
+  yet — the Reports page is currently identical for Growth and Pro. This
+  needs a real follow-up build, not just a gating check, since the feature
+  itself was never built.
