@@ -29,7 +29,6 @@ export default function ServicesPage() {
   const [attributeType, setAttributeType] = useState("size");
   const [flatPrice, setFlatPrice] = useState("");
   const [attributeRows, setAttributeRows] = useState([{ value: "", price: "" }]);
-  const [requiresGroomer, setRequiresGroomer] = useState(true);
   const [capacity, setCapacity] = useState(1);
   const [saving, setSaving] = useState(false);
 
@@ -115,8 +114,8 @@ export default function ServicesPage() {
         parlour_id: parlourId,
         name: name.trim(),
         duration_minutes: duration,
-        requires_groomer_selection: requiresGroomer,
-        concurrent_capacity: requiresGroomer ? 1 : capacity,
+        requires_groomer_selection: false,
+        concurrent_capacity: capacity,
       })
       .select("id")
       .single();
@@ -172,7 +171,6 @@ export default function ServicesPage() {
     setUsesAttribute(false);
     setFlatPrice("");
     setAttributeRows([{ value: "", price: "" }]);
-    setRequiresGroomer(true);
     setCapacity(1);
 
     loadServices();
@@ -215,7 +213,7 @@ export default function ServicesPage() {
                 <div className="font-semibold text-[#14261F]">{service.name}</div>
                 <div className="text-xs text-[#14261F]/50 mb-2">
                   {service.duration_minutes} min ·{" "}
-                  {service.requires_groomer_selection ? "clients choose groomer" : `capacity: ${service.concurrent_capacity} at once`}
+                  {`capacity: ${service.concurrent_capacity} at once`}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {service.price_rule.map((rule) => (
@@ -264,34 +262,20 @@ export default function ServicesPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div>
+            <label className="block text-sm font-medium text-[#14261F] mb-1">How many can you do at once?</label>
             <input
-              type="checkbox"
-              id="requiresGroomer"
-              checked={requiresGroomer}
-              onChange={(e) => setRequiresGroomer(e.target.checked)}
-              className="rounded border-black/20"
+              type="number"
+              min={1}
+              value={capacity}
+              onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
+              className="w-32 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
             />
-            <label htmlFor="requiresGroomer" className="text-sm text-[#14261F]">
-              Clients choose which groomer does this service
-            </label>
+            <p className="text-xs text-[#14261F]/50 mt-1">
+              e.g. 2 wash stations means you can do 2 washes at the same time. Clients book a time
+              slot and you assign the groomer internally on the bookings page.
+            </p>
           </div>
-          {!requiresGroomer && (
-            <div>
-              <label className="block text-sm font-medium text-[#14261F] mb-1">How many can you do at once?</label>
-              <input
-                type="number"
-                min={1}
-                value={capacity}
-                onChange={(e) => setCapacity(parseInt(e.target.value) || 1)}
-                className="w-32 rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F]"
-              />
-              <p className="text-xs text-[#14261F]/50 mt-1">
-                e.g. 2 wash stations means you can do 2 washes at the same time. Clients won&apos;t pick a specific
-                groomer — you&apos;ll assign it internally.
-              </p>
-            </div>
-          )}
 
           <div className="flex items-center gap-2">
             <input

@@ -229,3 +229,18 @@ decisions from the full build so far.
   situation (already have a Yoco card machine → pick Yoco; want the
   simplest setup → Paystack; want the widest local payment methods like
   Instant EFT/SnapScan or run on debit orders → PayFast).
+
+## Groomer choice removed
+- **Decision reaffirmed and enforced**: clients never pick a specific
+  groomer — this isn't a hairdresser relationship. Every service now uses
+  capacity-based booking only.
+- **Done**: removed the "Clients choose which groomer does this service"
+  toggle from both the admin service creation and edit forms — capacity
+  ("how many can you do at once") is now always shown, unconditionally.
+  Existing services were migrated (`requires_groomer_selection` forced to
+  false), and the column's default changed to false for any new service.
+- The `requires_groomer_selection` column and the client app's branching
+  logic on it were deliberately left in place rather than ripped out —
+  since every service now has it false, that code path is simply dead
+  (never triggered), not broken. Removing it entirely would be a larger,
+  purely cosmetic cleanup with no functional benefit right now.
