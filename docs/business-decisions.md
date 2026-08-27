@@ -129,3 +129,45 @@ decisions from the full build so far.
   a different concept from rewards), saved payment methods (needs
   Paystack's card tokenization), push notifications (needs web push
   infrastructure).
+
+## Smart visit reminders
+- **Done**: `get_predicted_next_visit(dog_id)` Postgres function looks at a
+  dog's last 5 *completed* bookings, computes the average interval between
+  visits, and predicts the next due date. Needs at least 2 completed visits
+  to make a prediction — returns nothing otherwise.
+- **Done**: client's My Profile (home) page shows a reminder card for any
+  dog whose predicted next visit is within 7 days or overdue, and who
+  doesn't already have an upcoming booking — tapping it goes straight to
+  booking.
+- **Scope note**: this is an in-app reminder only (shown when the client
+  opens the app), not a push/SMS/email notification — that's still the
+  deferred "push notifications" item above, which needs separate
+  infrastructure (web push subscriptions, VAPID keys) to actually alert
+  someone who hasn't opened the app.
+
+## WorkInFlow subscription billing (parlour → WorkInFlow)
+- **Done, real test keys in use**: WorkInFlow's own Paystack account
+  (separate from any parlour's own account) is stored in
+  `workinflow_settings` — a single-row table with RLS enabled and
+  deliberately NO policies, so only server-side edge functions using the
+  service role key can ever read the secret key. Not even parlour staff can
+  see it via the API.
+- **Done**: `subscribe-parlour` edge function — confirms the caller is
+  actually staff of the parlour, then self-bootstraps Paystack "Plan"
+  objects for each tier on first real use (creates and caches the plan
+  code rather than needing a manual setup step), initializes a Paystack
+  transaction tied to that plan, and returns a checkout URL. The admin
+  Billing page's "Subscribe" button now does a real checkout redirect
+  instead of showing a placeholder note.
+- **Done**: `workinflow-paystack-webhook` edge function — verifies
+  Paystack's HMAC-SHA512 signature before trusting any event, then updates
+  the `subscription` and `parlour` tables on `charge.success`,
+  `subscription.create`, `invoice.payment_failed`, and
+  `subscription.disable`.
+- **Still needed before this works end-to-end**: the webhook URL
+  (`https://vdktciebkfyjtanyzdfu.supabase.co/functions/v1/workinflow-paystack-webhook`)
+  must be registered in the Paystack dashboard (Settings → API Keys &
+  Webhooks → Webhook URL) — otherwise Paystack has nowhere to report
+  payment events back to.
+- Currently on **test keys** — a real end-to-end test (subscribe → webhook
+  fires → subscription flips to active) hasn't been run yet.

@@ -21,10 +21,13 @@ type ParlourInfo = {
 export default function BillingPage() {
   const supabase = createClient();
 
+  const [parlourId, setParlourId] = useState<string | null>(null);
   const [parlour, setParlour] = useState<ParlourInfo | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showPaystackNote, setShowPaystackNote] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>("starter");
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -49,6 +52,7 @@ export default function BillingPage() {
       return;
     }
 
+    setParlourId(staffRow.parlour_id);
     setParlour(staffRow.parlour as unknown as ParlourInfo);
 
     const { data: subRow } = await supabase
@@ -58,12 +62,51 @@ export default function BillingPage() {
       .maybeSingle();
 
     setSubscription(subRow);
+    if (subRow?.plan) setSelectedPlan(subRow.plan);
     setLoading(false);
   }, [supabase]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  async function handleCheckout() {
+    if (!parlourId) return;
+    setError(null);
+    setCheckingOut(true);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setError("Session expired — please log in again.");
+      setCheckingOut(false);
+      return;
+    }
+
+    const res = await fetch(
+      `https://vdktciebkfyjtanyzdfu.supabase.co/functions/v1/subscribe-parlour`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ parlour_id: parlourId, plan: selectedPlan }),
+      }
+    );
+
+    const result = await res.json();
+    setCheckingOut(false);
+
+    if (!res.ok) {
+      setError(result.error ?? "Could not start checkout.");
+      return;
+    }
+
+    window.location.href = result.authorization_url;
+  }
 
   if (loading) {
     return (
@@ -99,6 +142,10 @@ export default function BillingPage() {
         <h1 className="text-2xl font-semibold text-[#14261F] mb-1">Billing</h1>
         <p className="text-sm text-[#14261F]/60 mb-8">Your WorkInFlow subscription for {parlour.name}.</p>
 
+        {error && (
+          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-6">{error}</div>
+        )}
+
         <div className="bg-white border border-black/10 rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -128,25 +175,44 @@ export default function BillingPage() {
           {subscription.status === "paused" && (
             <div className="mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
               Your booking page is currently paused because your trial ended without a payment
-              method on file. Your data is safe — add a payment method below to reactivate
-              instantly.
+              method on file. Your data is safe — subscribe below to reactivate instantly.
+            </div>
+          )}
+
+          {(subscription.status === "trialing" || subscription.status === "paused" || subscription.status === "past_due" || subscription.status === "cancelled") && (
+            <div className="mt-5">
+              <label className="block text-sm font-medium text-[#14261F] mb-2">Choose your plan</label>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {Object.entries(PLAN_LABELS).map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedPlan(key)}
+                    className={`text-xs rounded-lg py-2.5 border ${
+                      selectedPlan === key
+                        ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]"
+                        : "bg-white text-[#14261F] border-black/15"
+                    }`}
+                  >
+                    {label}
+                    <br />
+                    <span className="opacity-70">R{PLAN_PRICES[key]}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
           <button
-            onClick={() => setShowPaystackNote(true)}
-            className="w-full bg-[#14261F] text-[#FAF6EF] rounded-full py-2.5 text-sm font-semibold mt-5"
+            onClick={handleCheckout}
+            disabled={checkingOut}
+            className="w-full bg-[#14261F] text-[#FAF6EF] rounded-full py-2.5 text-sm font-semibold mt-2 disabled:opacity-50"
           >
-            {subscription.status === "active" ? "Update payment method" : "Add payment method"}
+            {checkingOut
+              ? "Redirecting to Paystack…"
+              : subscription.status === "active"
+              ? "Update payment method"
+              : `Subscribe to ${PLAN_LABELS[selectedPlan]} — R${PLAN_PRICES[selectedPlan]}/month`}
           </button>
-
-          {showPaystackNote && (
-            <div className="mt-4 bg-[#FAF6EF] rounded-lg px-4 py-3 text-xs text-[#14261F]/70">
-              Payment collection isn&apos;t connected yet — this will hand off to Paystack to
-              securely add a card once that&apos;s configured. Your trial and access aren&apos;t
-              affected in the meantime.
-            </div>
-          )}
         </div>
 
         <div className="bg-white border border-black/10 rounded-2xl p-6">
