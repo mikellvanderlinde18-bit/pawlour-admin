@@ -124,37 +124,41 @@ export default function BookingsListPage() {
     setRefundingId(booking.id);
     setError(null);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    if (!session) {
-      setError("Session expired — please log in again.");
-      setRefundingId(null);
-      return;
-    }
-
-    const res = await fetch(
-      `https://vdktciebkfyjtanyzdfu.supabase.co/functions/v1/refund-payment`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ booking_id: booking.id }),
+      if (!session) {
+        setError("Session expired — please log in again.");
+        return;
       }
-    );
 
-    const result = await res.json();
-    setRefundingId(null);
+      const res = await fetch(
+        `https://vdktciebkfyjtanyzdfu.supabase.co/functions/v1/refund-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ booking_id: booking.id }),
+        }
+      );
 
-    if (!res.ok) {
-      setError(result.error ?? "Refund failed.");
-      return;
+      const result = await res.json();
+
+      if (!res.ok) {
+        setError(result.error ?? "Refund failed.");
+        return;
+      }
+
+      loadData();
+    } catch {
+      setError("Could not reach the payment service — check your connection and try again.");
+    } finally {
+      setRefundingId(null);
     }
-
-    loadData();
   }
 
   async function handleAssignGroomer(id: string, groomerId: string) {

@@ -75,37 +75,43 @@ export default function BillingPage() {
     setError(null);
     setCheckingOut(true);
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    if (!session) {
-      setError("Session expired — please log in again.");
-      setCheckingOut(false);
-      return;
-    }
-
-    const res = await fetch(
-      `https://vdktciebkfyjtanyzdfu.supabase.co/functions/v1/subscribe-parlour`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ parlour_id: parlourId, plan: selectedPlan }),
+      if (!session) {
+        setError("Session expired — please log in again.");
+        setCheckingOut(false);
+        return;
       }
-    );
 
-    const result = await res.json();
-    setCheckingOut(false);
+      const res = await fetch(
+        `https://vdktciebkfyjtanyzdfu.supabase.co/functions/v1/subscribe-parlour`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ parlour_id: parlourId, plan: selectedPlan }),
+        }
+      );
 
-    if (!res.ok) {
-      setError(result.error ?? "Could not start checkout.");
-      return;
+      const result = await res.json();
+      setCheckingOut(false);
+
+      if (!res.ok) {
+        setError(result.error ?? "Could not start checkout.");
+        return;
+      }
+
+      window.location.href = result.authorization_url;
+    } catch {
+      setError("Could not reach the payment service — check your connection and try again.");
+    } finally {
+      setCheckingOut(false);
     }
-
-    window.location.href = result.authorization_url;
   }
 
   if (loading) {

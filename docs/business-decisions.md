@@ -171,3 +171,15 @@ decisions from the full build so far.
   payment events back to.
 - Currently on **test keys** — a real end-to-end test (subscribe → webhook
   fires → subscription flips to active) hasn't been run yet.
+- **Bug found & fixed**: all three payment edge functions (`subscribe-parlour`,
+  `verify-payment`, `refund-payment`) were missing CORS headers, which
+  silently blocked every browser call to them — the "Redirecting to
+  Paystack…" button would hang forever with no error, since the fetch
+  promise never resolved and no try/catch existed to surface a failure.
+  Fixed by adding proper CORS headers (including OPTIONS preflight
+  handling) to all three functions, and wrapping every corresponding
+  frontend fetch call in try/catch/finally so a network or CORS failure
+  always resets the button state and shows an error instead of hanging.
+  Worth remembering for any *future* edge function called directly from a
+  browser: CORS headers are not automatic on Supabase Edge Functions and
+  must be added explicitly.
