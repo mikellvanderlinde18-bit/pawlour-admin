@@ -183,3 +183,49 @@ decisions from the full build so far.
   Worth remembering for any *future* edge function called directly from a
   browser: CORS headers are not automatic on Supabase Edge Functions and
   must be added explicitly.
+
+## Multi-provider client payments (Paystack + Yoco + PayFast)
+- **Decision**: parlours can choose whichever payment gateway they already
+  trust or already use for their card machine — not locked to Paystack.
+  Netcash deliberately deferred (heavier merchant accreditation process,
+  more complex/older-style API) — flagged as a near-term follow-up once
+  there's real demand for it.
+- **Done**: `parlour_payment` redesigned to be provider-agnostic —
+  `provider` column plus a `credentials` jsonb column, since each provider
+  needs different fields (Paystack/Yoco: public+secret key; PayFast:
+  merchant_id + merchant_key + optional passphrase). The public-safe view
+  (`parlour_payment_public`) exposes only the one field each provider's
+  client-side checkout actually needs — never secrets.
+- **Done**: three genuinely different checkout flows, since each provider
+  works differently:
+  - **Paystack** — popup via Inline.js, then server-side `verify-payment`
+    confirms the charge really happened before marking a booking paid.
+  - **Yoco** — popup via their Web SDK tokenizes the card client-side, then
+    a NEW `yoco-charge` edge function does the actual charge server-side
+    using the parlour's Yoco secret key (this is a two-step flow, unlike
+    Paystack's single verify step — the token itself isn't a completed
+    payment until charged).
+  - **PayFast** — no popup at all. A new `payfast-generate-checkout`
+    function builds and signs the required form fields server-side (so the
+    passphrase never reaches the browser), the client's browser submits a
+    genuine HTML form POST to PayFast's hosted page, and a separate
+    `payfast-itn-webhook` function receives PayFast's server-to-server
+    notification once payment completes and marks the booking paid.
+- **Real bug caught before it shipped**: PayFast's required signature
+  algorithm is MD5, which the standard Web Crypto API does NOT support
+  (SHA family only) — using `crypto.subtle.digest("MD5", ...)` would have
+  silently thrown at runtime. Fixed by importing Deno's `jsr:@std/crypto`,
+  which extends supported digest algorithms to include MD5.
+- **Done**: `booking.payment_provider` records which gateway actually
+  processed a given booking's payment, since refunds need to know which
+  API to call for a specific historical booking (a parlour could switch
+  providers over time). Refund function branches per provider — Paystack
+  and Yoco refunds work through this function; PayFast refunds currently
+  require the parlour to process them manually in their own PayFast
+  dashboard (PayFast's refund API needs separate per-merchant setup beyond
+  the standard credentials, not yet supported here).
+- Admin Payment Setup page now shows a provider picker with the right
+  fields per provider, plus honest guidance on which provider fits which
+  situation (already have a Yoco card machine → pick Yoco; want the
+  simplest setup → Paystack; want the widest local payment methods like
+  Instant EFT/SnapScan or run on debit orders → PayFast).

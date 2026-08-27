@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+type Provider = "paystack" | "yoco" | "payfast";
+
 export default function PaymentSetupPage() {
   const supabase = createClient();
 
@@ -11,11 +13,19 @@ export default function PaymentSetupPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [hasExisting, setHasExisting] = useState(false);
 
+  const [provider, setProvider] = useState<Provider>("paystack");
+  const [enabled, setEnabled] = useState(false);
+
+  // Paystack / Yoco share this shape
   const [publicKey, setPublicKey] = useState("");
   const [secretKey, setSecretKey] = useState("");
-  const [enabled, setEnabled] = useState(false);
-  const [hasExisting, setHasExisting] = useState(false);
+
+  // PayFast has its own shape
+  const [merchantId, setMerchantId] = useState("");
+  const [merchantKey, setMerchantKey] = useState("");
+  const [passphrase, setPassphrase] = useState("");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -43,15 +53,21 @@ export default function PaymentSetupPage() {
 
     const { data: paymentRow } = await supabase
       .from("parlour_payment")
-      .select("paystack_public_key, paystack_secret_key, enabled")
+      .select("provider, credentials, enabled")
       .eq("parlour_id", staffRow.parlour_id)
       .maybeSingle();
 
     if (paymentRow) {
-      setPublicKey(paymentRow.paystack_public_key ?? "");
-      setSecretKey(paymentRow.paystack_secret_key ?? "");
-      setEnabled(paymentRow.enabled);
       setHasExisting(true);
+      setEnabled(paymentRow.enabled);
+      if (paymentRow.provider) setProvider(paymentRow.provider as Provider);
+
+      const creds = paymentRow.credentials ?? {};
+      setPublicKey(creds.public_key ?? "");
+      setSecretKey(creds.secret_key ?? "");
+      setMerchantId(creds.merchant_id ?? "");
+      setMerchantKey(creds.merchant_key ?? "");
+      setPassphrase(creds.passphrase ?? "");
     }
 
     setLoading(false);
@@ -66,17 +82,31 @@ export default function PaymentSetupPage() {
     setError(null);
     setSaved(false);
 
-    if (enabled && (!publicKey.trim() || !secretKey.trim())) {
-      setError("Both keys are required to turn payments on.");
-      return;
+    let credentials: Record<string, string> = {};
+    if (provider === "paystack" || provider === "yoco") {
+      if (enabled && (!publicKey.trim() || !secretKey.trim())) {
+        setError("Both keys are required to turn payments on.");
+        return;
+      }
+      credentials = { public_key: publicKey.trim(), secret_key: secretKey.trim() };
+    } else if (provider === "payfast") {
+      if (enabled && (!merchantId.trim() || !merchantKey.trim())) {
+        setError("Merchant ID and Merchant Key are required to turn payments on.");
+        return;
+      }
+      credentials = {
+        merchant_id: merchantId.trim(),
+        merchant_key: merchantKey.trim(),
+        passphrase: passphrase.trim(),
+      };
     }
 
     setSaving(true);
 
     const payload = {
       parlour_id: parlourId,
-      paystack_public_key: publicKey.trim() || null,
-      paystack_secret_key: secretKey.trim() || null,
+      provider,
+      credentials,
       enabled,
       updated_at: new Date().toISOString(),
     };
@@ -108,33 +138,32 @@ export default function PaymentSetupPage() {
       <div className="max-w-2xl">
         <h1 className="text-2xl font-semibold text-[#14261F] mb-1">Payment setup</h1>
         <p className="text-sm text-[#14261F]/60 mb-8">
-          Let clients pay in-app. Money goes straight to your own bank account — WorkInFlow never
-          touches it.
+          Let clients pay in-app. Pick whichever provider you already use — money goes straight
+          to your own account, WorkInFlow never touches it.
         </p>
 
         <div className="bg-white border border-black/10 rounded-2xl p-6 mb-6">
-          <p className="text-sm font-semibold text-[#14261F] mb-2">How this works</p>
-          <ol className="text-sm text-[#14261F]/70 space-y-2 list-decimal list-inside">
-            <li>
-              Create a free account at{" "}
-              <a href="https://paystack.com" target="_blank" rel="noreferrer" className="underline">
-                paystack.com
-              </a>{" "}
-              if you don&apos;t have one — takes a few minutes, no setup or monthly fee.
-            </li>
-            <li>
-              To go live in South Africa, Paystack will ask for CIPC registration documents (or
-              sole proprietorship equivalent), a SARS tax clearance certificate, ID, and proof of
-              bank account. This usually takes 1–2 business days to activate.
-            </li>
-            <li>
-              Once activated, go to <strong>Settings → API Keys &amp; Webhooks</strong> in your
-              Paystack dashboard and copy your keys in below.
-            </li>
-          </ol>
+          <label className="block text-sm font-medium text-[#14261F] mb-2">Provider</label>
+          <div className="flex gap-2">
+            {(["paystack", "yoco", "payfast"] as Provider[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setProvider(p)}
+                className={`flex-1 text-sm rounded-lg py-2.5 border capitalize ${
+                  provider === p
+                    ? "bg-[#14261F] text-[#FAF6EF] border-[#14261F]"
+                    : "bg-white text-[#14261F] border-black/15"
+                }`}
+              >
+                {p === "paystack" ? "Paystack" : p === "yoco" ? "Yoco" : "PayFast"}
+              </button>
+            ))}
+          </div>
           <p className="text-xs text-[#14261F]/50 mt-3">
-            Paystack&apos;s standard fee is roughly 2.9% + R1 per transaction (plus VAT) — this
-            comes off your payout, WorkInFlow doesn&apos;t take any cut.
+            Already have a Yoco card machine in your parlour? Pick Yoco — online and in-person
+            share the same account. Already run on debit orders or want the widest local payment
+            options (Instant EFT, SnapScan)? PayFast is a strong fit. Want the simplest developer
+            setup? Paystack.
           </p>
         </div>
 
@@ -148,32 +177,70 @@ export default function PaymentSetupPage() {
         )}
 
         <div className="bg-white border border-black/10 rounded-2xl p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-[#14261F] mb-1">Public key</label>
-            <input
-              type="text"
-              value={publicKey}
-              onChange={(e) => setPublicKey(e.target.value)}
-              placeholder="pk_test_..."
-              className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] font-mono"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[#14261F] mb-1">Secret key</label>
-            <input
-              type="password"
-              value={secretKey}
-              onChange={(e) => setSecretKey(e.target.value)}
-              placeholder="sk_test_..."
-              className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] font-mono"
-            />
-            <p className="text-xs text-[#14261F]/40 mt-1">
-              Kept private — only used server-side to verify and refund payments, never shown to
-              clients.
-            </p>
-          </div>
+          {(provider === "paystack" || provider === "yoco") && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-[#14261F] mb-1">Public key</label>
+                <input
+                  type="text"
+                  value={publicKey}
+                  onChange={(e) => setPublicKey(e.target.value)}
+                  placeholder={provider === "paystack" ? "pk_test_..." : "pk_test_..."}
+                  className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#14261F] mb-1">Secret key</label>
+                <input
+                  type="password"
+                  value={secretKey}
+                  onChange={(e) => setSecretKey(e.target.value)}
+                  placeholder={provider === "paystack" ? "sk_test_..." : "sk_test_..."}
+                  className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] font-mono"
+                />
+                <p className="text-xs text-[#14261F]/40 mt-1">
+                  Kept private — only used server-side, never shown to clients.
+                </p>
+              </div>
+            </>
+          )}
 
-          <div className="flex items-center justify-between pt-2">
+          {provider === "payfast" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-[#14261F] mb-1">Merchant ID</label>
+                <input
+                  type="text"
+                  value={merchantId}
+                  onChange={(e) => setMerchantId(e.target.value)}
+                  className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#14261F] mb-1">Merchant Key</label>
+                <input
+                  type="password"
+                  value={merchantKey}
+                  onChange={(e) => setMerchantKey(e.target.value)}
+                  className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#14261F] mb-1">Passphrase (optional)</label>
+                <input
+                  type="password"
+                  value={passphrase}
+                  onChange={(e) => setPassphrase(e.target.value)}
+                  className="w-full rounded-lg border border-black/15 px-3 py-2 text-sm text-[#14261F] font-mono"
+                />
+                <p className="text-xs text-[#14261F]/40 mt-1">
+                  Only needed if you set a security passphrase in your PayFast settings.
+                </p>
+              </div>
+            </>
+          )}
+
+          <div className="flex items-center justify-between pt-2 border-t border-black/10">
             <div>
               <p className="text-sm font-semibold text-[#14261F]">Let clients pay in-app</p>
               <p className="text-xs text-[#14261F]/50">
